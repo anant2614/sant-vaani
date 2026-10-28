@@ -1,18 +1,33 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import '@/startup';
+
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { useEffect } from 'react';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { AppProviders } from '@/AppProviders';
+import { RootStack } from '@/navigation/RootStack';
+import { fontFiles } from '@/theme/fonts';
 
-SplashScreen.preventAutoHideAsync();
+// The splash stays up until fonts, preferences and the catalogue are read
+// from the phone, so the first screen appears complete.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+SplashScreen.setOptions({ fade: true, duration: 400 });
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontFiles);
+  if (!fontsLoaded && !fontError) return null;
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <AppProviders>
+      <HideSplash />
+      <RootStack />
+    </AppProviders>
   );
+}
+
+/** Mounts only once every provider above it has loaded. */
+function HideSplash() {
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+  return null;
 }

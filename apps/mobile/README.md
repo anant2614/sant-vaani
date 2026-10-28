@@ -1,56 +1,53 @@
-# Welcome to your Expo app 👋
+# Sant Vaani app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The phone app, built with Expo SDK 58 and Expo Router. It opens on Today: one
+question answered by the saints, topics to explore, the day's Gita verse and a
+seven-day path. Everything it shows comes from the catalogue file, so it works
+offline with the copy it ships with and refreshes that copy in the background.
 
-## Get started
+## Run it
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+From the repository root:
 
 ```bash
-npm run reset-project
+npm install
+cp apps/mobile/.env.example apps/mobile/.env.local   # optional
+npm run start -w mobile
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Every value in `.env.local` is optional. Without them the app opens with the
+catalogue it ships with, no sign-in and no analytics.
 
-### Other setup steps
+## Check it
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm test -w mobile            # Jest with React Native Testing Library
+npm run typecheck -w mobile
+npm run screens -w mobile     # phone-size screenshots in screens/, needs Playwright
+```
 
-## Learn more
+The web build is a preview for screenshots and quick checks. It reads the Gita
+from `assets/db/gita.json` instead of SQLite; `npm run gita:build` at the root
+writes both copies.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Before a store build
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run catalogue:pull -w mobile
+```
 
-## Join the community
+This downloads the published catalogue into `assets/catalogue.seed.json`, so a
+fresh install opens with current answers before it has a connection.
 
-Join our community of developers creating universal apps.
+## Where things are
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `src/app/` holds the screens. Everything except `welcome` sits in the `(app)`
+  group, which opens only after the 18+ confirmation.
+- `src/catalogue/` loads, caches and refreshes the catalogue.
+- `src/gita/` opens the bundled Gita database.
+- `src/auth/` signs in a guest after the 18+ confirmation and keeps the profile
+  row in step with the phone's settings.
+- `src/theme/` switches between Ganga Ghat and Chandni at sunrise and sunset.
+- `src/i18n/strings.ts` has every English and Hindi string.
+- `__tests__/fixtures/sample-catalogue.json` is made-up content for tests and
+  screenshots.

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, it } from 'node:test';
-import { DB_PATH, SQL_PATH, readGita, seedSql } from './build.mjs';
+import { DB_PATH, JSON_PATH, SQL_PATH, readGita, seedSql, webJson } from './build.mjs';
 import { joinWords, toDevanagari } from './devanagari.mjs';
 
 const gita = readGita();
@@ -96,5 +96,9 @@ describe('outputs', () => {
     } finally {
       db.close();
     }
+  });
+
+  it('the web preview copy is up to date', () => {
+    assert.equal(readFileSync(JSON_PATH, 'utf8'), webJson(gita));
   });
 });

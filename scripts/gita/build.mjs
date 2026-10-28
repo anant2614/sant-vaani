@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Builds the Gita for the app (apps/mobile/assets/db/gita.db) and the
-// database (supabase/seed/01_gita.sql) from the vendored IAST source.
+// Builds the Gita for the app (apps/mobile/assets/db/gita.db, plus
+// gita.json for the web preview, which has no SQLite) and the database
+// (supabase/seed/01_gita.sql) from the vendored IAST source.
 // Run with: npm run gita:build
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -12,6 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '../..');
 export const SQL_PATH = join(root, 'supabase/seed/01_gita.sql');
 export const DB_PATH = join(root, 'apps/mobile/assets/db/gita.db');
+export const JSON_PATH = join(root, 'apps/mobile/assets/db/gita.json');
 /** Bump when the shape or text of gita.db changes, so the app replaces its copy. */
 export const DB_VERSION = 1;
 
@@ -123,9 +125,15 @@ export function writeSqlite({ chapters, verses }, path = DB_PATH) {
   }
 }
 
+/** The same tables as gita.db, one object per row. */
+export function webJson({ chapters, verses }) {
+  return `${JSON.stringify({ version: DB_VERSION, chapters, verses })}\n`;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const gita = readGita();
   writeFileSync(SQL_PATH, seedSql(gita));
   writeSqlite(gita);
-  console.log(`Wrote ${gita.verses.length} verses to ${SQL_PATH} and ${DB_PATH}.`);
+  writeFileSync(JSON_PATH, webJson(gita));
+  console.log(`Wrote ${gita.verses.length} verses to ${SQL_PATH}, ${DB_PATH} and ${JSON_PATH}.`);
 }

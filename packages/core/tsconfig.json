@@ -1,4 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Keeps the source runnable by Node's type stripping, for scripts such as
+    // apps/mobile/scripts/pull-catalogue.mjs.
+    "erasableSyntaxOnly": true
+  },
   "include": ["src", "test"]
 }

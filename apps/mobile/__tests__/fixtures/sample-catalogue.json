@@ -1,0 +1,353 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-27T21:30:00.000Z",
+  "saints": [
+    {
+      "id": "saint-a",
+      "name": {
+        "en": "Sample Saint A",
+        "hi": "नमूना संत क"
+      },
+      "initials": "SA"
+    },
+    {
+      "id": "saint-b",
+      "name": {
+        "en": "Sample Saint B",
+        "hi": "नमूना संत ख"
+      },
+      "initials": "SB"
+    },
+    {
+      "id": "saint-c",
+      "name": {
+        "en": "Sample Saint C",
+        "hi": "नमूना संत ग"
+      },
+      "initials": "SC"
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic-grief",
+      "slug": "grief",
+      "name": {
+        "en": "Grief and loss",
+        "hi": "शोक"
+      },
+      "sortOrder": 30
+    },
+    {
+      "id": "topic-overthinking",
+      "slug": "overthinking",
+      "name": {
+        "en": "Overthinking",
+        "hi": "ज़्यादा सोचना"
+      },
+      "sortOrder": 1
+    },
+    {
+      "id": "topic-anger",
+      "slug": "anger",
+      "name": {
+        "en": "Anger",
+        "hi": "क्रोध"
+      },
+      "sortOrder": 3
+    },
+    {
+      "id": "topic-exams",
+      "slug": "exams",
+      "name": {
+        "en": "Studies and exams",
+        "hi": "पढ़ाई और परीक्षा"
+      },
+      "sortOrder": 23
+    },
+    {
+      "id": "topic-comparison",
+      "slug": "comparison",
+      "name": {
+        "en": "Comparing yourself to others",
+        "hi": "दूसरों से तुलना"
+      },
+      "sortOrder": 10
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-overthinking",
+      "topicId": "topic-overthinking",
+      "text": {
+        "en": "How do I stop overthinking?"
+      }
+    },
+    {
+      "id": "q-anger",
+      "topicId": "topic-anger",
+      "text": {
+        "en": "How do I stop reacting in anger?"
+      }
+    },
+    {
+      "id": "q-exams",
+      "topicId": "topic-exams",
+      "text": {
+        "en": "How do I handle exam pressure?"
+      }
+    },
+    {
+      "id": "q-grief",
+      "topicId": "topic-grief",
+      "text": {
+        "en": "How do I live with loss?"
+      }
+    },
+    {
+      "id": "q-comparison",
+      "topicId": "topic-comparison",
+      "text": {
+        "en": "How do I stop comparing myself to others?",
+        "hi": "दूसरों से अपनी तुलना करना कैसे छोड़ूँ?"
+      }
+    }
+  ],
+  "clips": [
+    {
+      "id": "clip-1",
+      "saintId": "saint-a",
+      "youtubeId": "aaaaaaaaaa1",
+      "start": 600,
+      "end": 750,
+      "language": "hi",
+      "summary": {
+        "en": "Watching thoughts without following them."
+      }
+    },
+    {
+      "id": "clip-2",
+      "saintId": "saint-b",
+      "youtubeId": "bbbbbbbbbb2",
+      "start": 120,
+      "end": 270,
+      "language": "hi",
+      "summary": {
+        "en": "Every flower blooms in its own season."
+      }
+    },
+    {
+      "id": "clip-3",
+      "saintId": "saint-c",
+      "youtubeId": "cccccccccc3",
+      "start": 30,
+      "end": 150,
+      "language": "en",
+      "summary": {
+        "en": "Your path is yours alone."
+      }
+    },
+    {
+      "id": "clip-4",
+      "saintId": "saint-a",
+      "youtubeId": "aaaaaaaaaa4",
+      "start": 60,
+      "end": 200,
+      "language": "hi",
+      "summary": {
+        "en": "Anger is a guest; do not give it a room."
+      }
+    },
+    {
+      "id": "clip-5",
+      "saintId": "saint-b",
+      "youtubeId": "bbbbbbbbbb5",
+      "start": 0,
+      "end": 160,
+      "language": "hi",
+      "summary": {
+        "en": "Study as worship, not as a race."
+      }
+    }
+  ],
+  "answers": [
+    {
+      "id": "answer-1",
+      "questionId": "q-overthinking",
+      "clipIds": [
+        "clip-1",
+        "clip-2",
+        "clip-3"
+      ],
+      "verse": {
+        "chapter": 6,
+        "verse": 35
+      },
+      "step": {
+        "en": "Count ten slow breaths."
+      }
+    },
+    {
+      "id": "answer-2",
+      "questionId": "q-anger",
+      "clipIds": [
+        "clip-4",
+        "clip-2",
+        "clip-3"
+      ],
+      "verse": {
+        "chapter": 2,
+        "verse": 63
+      },
+      "step": null
+    },
+    {
+      "id": "answer-3",
+      "questionId": "q-exams",
+      "clipIds": [
+        "clip-5",
+        "clip-1",
+        "clip-3"
+      ],
+      "verse": {
+        "chapter": 2,
+        "verse": 47
+      },
+      "step": null
+    },
+    {
+      "id": "answer-4",
+      "questionId": "q-grief",
+      "clipIds": [
+        "clip-1",
+        "clip-2"
+      ],
+      "verse": {
+        "chapter": 2,
+        "verse": 14
+      },
+      "step": null
+    },
+    {
+      "id": "answer-5",
+      "questionId": "q-comparison",
+      "clipIds": [
+        "clip-1",
+        "clip-2",
+        "clip-3"
+      ],
+      "verse": {
+        "chapter": 3,
+        "verse": 35
+      },
+      "step": {
+        "en": "Name one thing you are grateful for in your own life."
+      }
+    }
+  ],
+  "paths": [
+    {
+      "id": "path-1",
+      "slug": "calming-a-restless-mind",
+      "title": {
+        "en": "Calming a restless mind",
+        "hi": "बेचैन मन को शांत करना"
+      },
+      "description": {
+        "en": "Seven days of small practices for a mind that will not slow down."
+      },
+      "days": [
+        {
+          "day": 1,
+          "clipId": "clip-1",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 1: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 2,
+          "clipId": "clip-2",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 2: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 3,
+          "clipId": "clip-3",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 3: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 4,
+          "clipId": null,
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 4: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 5,
+          "clipId": "clip-1",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 5: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 6,
+          "clipId": "clip-2",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 6: sit for two minutes and count ten slow breaths."
+          }
+        },
+        {
+          "day": 7,
+          "clipId": "clip-3",
+          "verse": {
+            "chapter": 6,
+            "verse": 35
+          },
+          "step": {
+            "en": "Day 7: sit for two minutes and count ten slow breaths."
+          }
+        }
+      ]
+    }
+  ],
+  "dailyVerses": [
+    {
+      "chapter": 2,
+      "verse": 47
+    },
+    {
+      "chapter": 6,
+      "verse": 35
+    },
+    {
+      "chapter": 2,
+      "verse": 14
+    }
+  ]
+}

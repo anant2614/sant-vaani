@@ -11,12 +11,12 @@ const API = 'https://www.googleapis.com/youtube/v3';
 const MAX_IDS = 50;
 
 export class YouTubeApiError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
     super(message);
     this.name = 'YouTubeApiError';
+    this.status = status;
   }
 }
 
