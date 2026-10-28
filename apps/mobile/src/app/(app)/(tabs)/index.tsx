@@ -15,10 +15,13 @@ import { TopicChips } from '@/components/TopicChips';
 import { VerseCard } from '@/components/VerseCard';
 import { useVerse } from '@/gita/GitaProvider';
 import { dayPartOf, useStrings } from '@/i18n/strings';
+import { pathProgress, PATH_DAYS } from '@/paths/progress';
 import { usePrefs } from '@/prefs/PrefsProvider';
 import { APP_STARTED_AT } from '@/startup';
 import { useTheme } from '@/theme/useTheme';
 import { noonOf, todayView } from '@/today/today';
+import { pathCompletions } from '@/user/localStore';
+import { useUserData } from '@/user/UserDataProvider';
 
 let todayTimed = false;
 
@@ -34,6 +37,8 @@ export default function TodayScreen() {
   const view = useMemo(() => todayView(index, noonOf(day), prefs.language), [index, day, prefs.language]);
   const verse = useVerse(view.verse);
   const part = dayPartOf(now);
+  const data = useUserData();
+  const path = view.path ? pathProgress(pathCompletions(data, view.path.id), now) : null;
 
   useEffect(() => {
     if (todayTimed) return;
@@ -101,15 +106,19 @@ export default function TodayScreen() {
         />
       ) : null}
 
-      {view.path ? (
+      {view.path && path ? (
         <PathCard
           title={view.path.title}
           detail={
-            view.path.firstDayMinutes
-              ? `${t.path.sevenDays} · ${t.path.minutesToday(view.path.firstDayMinutes)}`
-              : t.path.sevenDays
+            path.done
+              ? t.paths.finished
+              : path.completed.length > 0
+                ? t.paths.daysDone(path.completed.length)
+                : view.path.firstDayMinutes
+                  ? `${t.path.sevenDays} · ${t.path.minutesToday(view.path.firstDayMinutes)}`
+                  : t.path.sevenDays
           }
-          progress={0}
+          progress={path.completed.length / PATH_DAYS}
           openLabel={t.path.open}
           onOpen={() => router.push(`/path/${view.path!.slug}`)}
         />

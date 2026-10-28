@@ -1,15 +1,25 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { FunctionsFetchError, FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
 
-type Call = { table: string; op: 'upsert' | 'delete' | 'rpc'; payload: unknown; ok: boolean };
+type Call = { table: string; op: 'upsert' | 'insert' | 'update' | 'delete' | 'rpc' | 'invoke'; payload: unknown; ok: boolean };
+
+const SESSION = { access_token: 'guest-token', user: { id: 'user-1' } };
 
 /**
- * The few Supabase calls the app's sync and account code make, recorded
- * instead of sent. While offline every call fails the way supabase-js
- * reports a network error.
+ * The Supabase calls the app makes, recorded instead of sent. While offline
+ * every call fails the way supabase-js reports a network error. `ask`
+ * plays the Ask function: it gets the request body and returns the reply,
+ * or a number to reply with that HTTP status instead.
  */
-export function fakeSupabase({ signedIn = true }: { signedIn?: boolean } = {}) {
+export function fakeSupabase({
+  signedIn = true,
+  ask = () => ({ kind: 'limited' }),
+}: {
+  signedIn?: boolean;
+  ask?: (body: unknown) => unknown;
+} = {}) {
   const calls: Call[] = [];
   let offline = false;
+  let session = signedIn ? SESSION : null;
   const answer = (table: string, op: Call['op'], payload: unknown) => {
     calls.push({ table, op, payload, ok: !offline });
     return Promise.resolve(
@@ -22,12 +32,31 @@ export function fakeSupabase({ signedIn = true }: { signedIn?: boolean } = {}) {
   const fake = {
     from: (table: string) => ({
       upsert: (rows: unknown, options: unknown) => answer(table, 'upsert', { rows, options }),
+      insert: (rows: unknown) => answer(table, 'insert', rows),
+      update: (values: unknown) => ({ eq: (column: string, value: unknown) => answer(table, 'update', { values, [column]: value }) }),
       delete: () => ({ match: (filter: unknown) => answer(table, 'delete', filter) }),
     }),
-    rpc: jest.fn((name: string) => answer(name, 'rpc', null)),
+    rpc: jest.fn((name: string, args?: unknown) => answer(name, 'rpc', args ?? null)),
+    functions: {
+      invoke: jest.fn(async (name: string, options: { body: unknown }) => {
+        calls.push({ table: name, op: 'invoke', payload: options.body, ok: !offline });
+        if (offline) return { data: null, error: new FunctionsFetchError(new TypeError('Network request failed')) };
+        const reply = ask(options.body);
+        if (typeof reply === 'number') return { data: null, error: new FunctionsHttpError(new Response(null, { status: reply })) };
+        return { data: reply, error: null };
+      }),
+    },
     auth: {
-      getSession: async () => ({ data: { session: signedIn ? { user: { id: 'user-1' } } : null }, error: null }),
-      signOut: jest.fn(async () => ({ error: null })),
+      getSession: async () => ({ data: { session }, error: null }),
+      signInAnonymously: async () => {
+        session = SESSION;
+        return { data: { session, user: session.user }, error: null };
+      },
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      signOut: jest.fn(async () => {
+        session = null;
+        return { error: null };
+      }),
     },
   };
 

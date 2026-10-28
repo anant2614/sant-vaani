@@ -42,6 +42,24 @@
             "image": "./assets/images/splash-icon.png"
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#1D3446",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Sant Vaani uses the microphone only while you speak a question.",
+          "speechRecognitionPermission": "Sant Vaani turns your spoken question into text so you can ask the saints.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
       ]
     ],
     "experiments": {

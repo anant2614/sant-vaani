@@ -9,7 +9,7 @@ export type TodayView = {
   answer: { id: string; question: string; saints: number; minutes: number } | null;
   chips: { key: string; label: string }[];
   verse: VerseRef | null;
-  path: { slug: string; title: string; firstDayMinutes: number | null } | null;
+  path: { id: string; slug: string; title: string; firstDayMinutes: number | null } | null;
 };
 
 /** Everything Today shows, worked out from the catalogue on the phone. */
@@ -33,6 +33,7 @@ export function todayView(index: CatalogueIndex, now: Date, language: AppLanguag
     verse: index.todaysVerse(now),
     path: firstPath
       ? {
+          id: firstPath.id,
           slug: firstPath.slug,
           title: localize(firstPath.title, language),
           firstDayMinutes: firstClip ? Math.max(1, Math.round((firstClip.end - firstClip.start) / 60)) : null,

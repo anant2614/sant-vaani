@@ -22,8 +22,10 @@ export const config = {
         host: clean(process.env.EXPO_PUBLIC_POSTHOG_HOST) ?? 'https://eu.i.posthog.com',
       }
     : null,
-  /** The website, for share links and the terms and privacy pages. */
+  /** The website, for the terms and privacy pages and the player's origin. */
   siteUrl: clean(process.env.EXPO_PUBLIC_SITE_URL),
+  /** Where shared links point: <shareBaseUrl>/a/<answer id>. Defaults to the website. */
+  shareBaseUrl: clean(process.env.EXPO_PUBLIC_SHARE_BASE_URL) ?? clean(process.env.EXPO_PUBLIC_SITE_URL),
 };
 
 function clean(value: string | undefined): string | null {

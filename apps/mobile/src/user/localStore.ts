@@ -19,6 +19,8 @@ export type Note = {
 export type SaveKind = 'answer' | 'clip' | 'verse' | 'path';
 export type Save = { kind: SaveKind; ref: string; createdAt: string };
 export type SaveChange = { kind: SaveKind; ref: string; saved: boolean };
+/** A day of a seven-day path the person marked done. */
+export type DayDone = { pathId: string; day: number; completedAt: string };
 
 /** Each change bumps the revision; the server has seen up to syncedRevision. */
 type StoredNote = Note & { revision: number; syncedRevision: number };
@@ -29,6 +31,10 @@ export type UserData = {
   saves: Record<string, Save>;
   /** Saves made (true) or removed (false) here that the server has not seen. */
   pendingSaves: Record<string, boolean>;
+  /** By `${pathId}:${day}`. */
+  progress: Record<string, DayDone>;
+  /** Days done here that the server has not seen, by the same key. */
+  pendingProgress: Record<string, true>;
 };
 
 export const USER_DATA_KEY = 'sant-vaani:user-data';
@@ -37,9 +43,10 @@ export const MAX_NOTE_LENGTH = 10_000;
 
 const SAVE_KINDS: readonly SaveKind[] = ['answer', 'clip', 'verse', 'path'];
 const saveKey = (kind: SaveKind, ref: string) => `${kind}:${ref}`;
+const dayKey = (pathId: string, day: number) => `${pathId}:${day}`;
 
 export function emptyUserData(): UserData {
-  return { notes: {}, saves: {}, pendingSaves: {} };
+  return { notes: {}, saves: {}, pendingSaves: {}, progress: {}, pendingProgress: {} };
 }
 
 /** The person's note on a verse, if they have one. */
@@ -54,6 +61,23 @@ export function noteFor(data: UserData | null, chapter: number, verse: number): 
 
 export function isSaved(data: UserData | null, kind: SaveKind, ref: string): boolean {
   return Boolean(data?.saves[saveKey(kind, ref)]);
+}
+
+/** When each day of a path was done, by day number. */
+export function pathCompletions(data: UserData | null, pathId: string): Record<number, { completedAt: string }> {
+  const days: Record<number, { completedAt: string }> = {};
+  for (const done of Object.values(data?.progress ?? {})) {
+    if (done.pathId === pathId) days[done.day] = { completedAt: done.completedAt };
+  }
+  return days;
+}
+
+/** Refs of everything saved of one kind, newest first. */
+export function savedRefs(data: UserData | null, kind: SaveKind): string[] {
+  return Object.values(data?.saves ?? {})
+    .filter((save) => save.kind === kind)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map((save) => save.ref);
 }
 
 export type MyVerse = VerseRef & { saved: boolean; note: string | null };
@@ -87,9 +111,10 @@ export type UserStoreOptions = {
 export type UserStore = ReturnType<typeof createUserStore>;
 
 /**
- * Notes and saves, kept on the phone first. Every change is written to the
- * phone before it counts, and stays pending until a sync confirms the
- * server has it, so nothing is lost offline or when the app is closed.
+ * Notes, saves and path progress, kept on the phone first. Every change is
+ * written to the phone before it counts, and stays pending until a sync
+ * confirms the server has it, so nothing is lost offline or when the app
+ * is closed.
  */
 export function createUserStore({ storage = AsyncStorage, newId = randomUUID, clock = () => new Date() }: UserStoreOptions = {}) {
   let data: UserData | null = null;
@@ -102,7 +127,7 @@ export function createUserStore({ storage = AsyncStorage, newId = randomUUID, cl
     loading ??= storage
       .getItem(USER_DATA_KEY)
       .then(readUserData, (error: unknown) => {
-        console.warn('Could not read notes and saves', error);
+        console.warn('Could not read notes, saves and progress', error);
         return emptyUserData();
       })
       .then((loaded) => {
@@ -187,10 +212,30 @@ export function createUserStore({ storage = AsyncStorage, newId = randomUUID, cl
       });
     },
 
+    /** Marks a day of a path done. A day is done once; doing it again changes nothing. */
+    async completeDay(pathId: string, day: number): Promise<void> {
+      await change((current) => {
+        const key = dayKey(pathId, day);
+        if (current.progress[key]) return null;
+        return {
+          next: {
+            ...current,
+            progress: { ...current.progress, [key]: { pathId, day, completedAt: now() } },
+            pendingProgress: { ...current.pendingProgress, [key]: true },
+          },
+          result: null,
+        };
+      });
+    },
+
     /** What the server has not seen yet. */
-    async pending(): Promise<{ notes: (Note & { revision: number })[]; saves: SaveChange[] }> {
+    async pending(): Promise<{ notes: (Note & { revision: number })[]; saves: SaveChange[]; progress: DayDone[] }> {
       const current = await load();
       return {
+        progress: Object.keys(current.pendingProgress).flatMap((key) => {
+          const done = current.progress[key];
+          return done ? [done] : [];
+        }),
         notes: Object.values(current.notes)
           .filter((note) => note.revision > note.syncedRevision)
           .map((note) => ({ ...toNote(note), revision: note.revision })),
@@ -202,8 +247,16 @@ export function createUserStore({ storage = AsyncStorage, newId = randomUUID, cl
     },
 
     /** Records what the server confirmed. Anything changed since stays pending. */
-    async markSynced({ notes = [], saves = [] }: { notes?: { id: string; revision: number }[]; saves?: SaveChange[] }) {
-      if (notes.length === 0 && saves.length === 0) return;
+    async markSynced({
+      notes = [],
+      saves = [],
+      progress = [],
+    }: {
+      notes?: { id: string; revision: number }[];
+      saves?: SaveChange[];
+      progress?: Pick<DayDone, 'pathId' | 'day'>[];
+    }) {
+      if (notes.length === 0 && saves.length === 0 && progress.length === 0) return;
       await change((current) => {
         const nextNotes = { ...current.notes };
         for (const { id, revision } of notes) {
@@ -219,7 +272,9 @@ export function createUserStore({ storage = AsyncStorage, newId = randomUUID, cl
           const key = saveKey(kind, ref);
           if (pendingSaves[key] === saved) delete pendingSaves[key];
         }
-        return { next: { ...current, notes: nextNotes, pendingSaves }, result: null };
+        const pendingProgress = { ...current.pendingProgress };
+        for (const { pathId, day } of progress) delete pendingProgress[dayKey(pathId, day)];
+        return { next: { ...current, notes: nextNotes, pendingSaves, pendingProgress }, result: null };
       });
     },
 
@@ -249,9 +304,11 @@ function readUserData(saved: string | null): UserData {
       notes: parsed.notes && typeof parsed.notes === 'object' ? parsed.notes : {},
       saves: parsed.saves && typeof parsed.saves === 'object' ? parsed.saves : {},
       pendingSaves: parsed.pendingSaves && typeof parsed.pendingSaves === 'object' ? parsed.pendingSaves : {},
+      progress: parsed.progress && typeof parsed.progress === 'object' ? parsed.progress : {},
+      pendingProgress: parsed.pendingProgress && typeof parsed.pendingProgress === 'object' ? parsed.pendingProgress : {},
     };
   } catch (error) {
-    console.warn('Notes and saves on this phone could not be read', error);
+    console.warn('Notes, saves and progress on this phone could not be read', error);
     return emptyUserData();
   }
 }

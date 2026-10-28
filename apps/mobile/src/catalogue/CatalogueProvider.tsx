@@ -99,7 +99,7 @@ export function CatalogueProvider({ options = {}, children }: { options?: Catalo
     [state, refresh],
   );
 
-  if (!value) return null;
+  if (!state) return null;
   return <CatalogueContext.Provider value={value}>{children}</CatalogueContext.Provider>;
 }
 

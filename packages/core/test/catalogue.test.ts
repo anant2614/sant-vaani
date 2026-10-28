@@ -72,9 +72,11 @@ describe('createCatalogueIndex', () => {
     expect(index.answersForTopic('t-anger').map((a) => a.id)).toEqual(['a-anger']);
   });
 
-  it('finds topics by slug and clips by saint', () => {
+  it('finds topics by slug, and clips and answers by saint', () => {
     expect(index.topicBySlug('anger')?.id).toBe('t-anger');
     expect(index.clipsForSaint('s-a').map((c) => c.id)).toEqual(['c-1', 'c-4']);
+    expect(index.answersForSaint('s-a').map((a) => a.id)).toEqual(['a-overthinking', 'a-anger']);
+    expect(index.answersForSaint('s-unknown')).toEqual([]);
   });
 
   it('resolves the clips of an answer in order', () => {

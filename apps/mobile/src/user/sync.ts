@@ -9,13 +9,16 @@ function check({ error }: Reply, what: string) {
 }
 
 /**
- * Sends the notes and saves the server has not seen. Notes go by id, so
- * sending one twice is harmless; anything that fails stays pending for the
- * next try. This phone is the only one a guest has, so nothing comes back
- * down yet.
+ * Sends the notes, saves and path days the server has not seen. Notes go
+ * by id and days by path and day, so sending one twice is harmless;
+ * anything that fails stays pending for the next try. This phone is the
+ * only one a guest has, so nothing comes back down yet.
  */
-export async function syncUserData(store: UserStore, client: SupabaseClient): Promise<{ notes: number; saves: number }> {
-  const { notes, saves } = await store.pending();
+export async function syncUserData(
+  store: UserStore,
+  client: SupabaseClient,
+): Promise<{ notes: number; saves: number; days: number }> {
+  const { notes, saves, progress } = await store.pending();
 
   if (notes.length > 0) {
     const rows = notes.map((note) => ({
@@ -42,12 +45,22 @@ export async function syncUserData(store: UserStore, client: SupabaseClient): Pr
     await store.markSynced({ saves: [removed] });
   }
 
-  return { notes: notes.length, saves: saves.length };
+  if (progress.length > 0) {
+    const rows = progress.map(({ pathId, day, completedAt }) => ({ path_id: pathId, day, completed_at: completedAt }));
+    check(
+      await client.from('path_progress').upsert(rows, { onConflict: 'user_id,path_id,day', ignoreDuplicates: true }),
+      'sync path progress',
+    );
+    await store.markSynced({ progress });
+  }
+
+  return { notes: notes.length, saves: saves.length, days: progress.length };
 }
 
 /**
  * Deletes the guest account on the server, which erases its profile,
- * notes, saves and questions, then everything this phone kept for it.
+ * notes, saves, progress and questions, then everything this phone kept
+ * for it.
  * Without a connection it fails and keeps the notes, so nothing is lost
  * by a deletion that did not happen.
  */

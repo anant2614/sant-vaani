@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useSyncExternalStore, t
 import { AppState } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { useClock } from '@/clock';
 import { createUserStore, isSaved, noteFor, type Note, type SaveKind, type UserData, type UserStore } from './localStore';
 import { syncUserData } from './sync';
 
@@ -11,12 +12,14 @@ const SYNC_DELAY_MS = 2000;
 const UserDataContext = createContext<UserStore | null>(null);
 
 /**
- * Holds the person's notes and saves. Screens read and write them on the
- * phone; once the guest account is signed in, changes go to the server
- * shortly after they are made and whenever the app comes back to the front.
+ * Holds the person's notes, saves and path progress. Screens read and
+ * write them on the phone; once the guest account is signed in, changes go
+ * to the server shortly after they are made and whenever the app comes
+ * back to the front.
  */
 export function UserDataProvider({ store: given, children }: { store?: UserStore; children: ReactNode }) {
-  const [store] = useState(() => given ?? createUserStore());
+  const clock = useClock();
+  const [store] = useState(() => given ?? createUserStore({ clock }));
   const { client, status } = useAuth();
 
   useEffect(() => {

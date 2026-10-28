@@ -52,6 +52,11 @@ export function createCatalogueIndex(catalogue: Catalogue) {
       return catalogue.clips.filter((c) => c.saintId === saintId);
     },
 
+    /** Answers that include one of the saint's clips. */
+    answersForSaint(saintId: string): Answer[] {
+      return catalogue.answers.filter((answer) => clipsFor(answer).some((clip) => clip.saintId === saintId));
+    },
+
     /** Whole minutes of listening, never less than one. */
     answerMinutes(answer: Answer): number {
       const seconds = clipsFor(answer).reduce((sum, c) => sum + (c.end - c.start), 0);

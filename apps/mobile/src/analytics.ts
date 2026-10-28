@@ -13,7 +13,15 @@ export type AnalyticsEvents = {
   catalogue_loaded: { source: 'cache' | 'bundled'; ms: number };
   welcome_completed: { language: 'en' | 'hi' };
   topic_opened: { topic: string; from: 'today' | 'ask' };
-  answer_opened: { answer: string; from: 'today' | 'topic' | 'ask' | 'share' | 'push' };
+  answer_opened: { answer: string; from: 'today' | 'topic' | 'ask' | 'saint' | 'saved' | 'share' | 'push' };
+  /** Where a typed or spoken question led; 'phone' when the crisis check on the phone caught it. */
+  ask_result: { kind: 'answer' | 'nearest' | 'crisis' | 'limited' | 'failed'; checkedOn: 'phone' | 'server' };
+  ask_voice_used: Record<string, never>;
+  notify_requested: Record<string, never>;
+  answer_saved: { answer: string };
+  answer_shared: { answer: string };
+  path_day_completed: { path: string; day: number };
+  reminder_set: { time: string | null };
 };
 
 let client: PostHog | null | undefined;
@@ -22,6 +30,7 @@ function posthog(): PostHog | null {
   if (client !== undefined) return client;
   if (!config.posthog) return (client = null);
   // Loaded only when a key is configured, so builds without one never start it.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { default: PostHogClient } = require('posthog-react-native') as typeof import('posthog-react-native');
   client = new PostHogClient(config.posthog.key, {
     host: config.posthog.host,

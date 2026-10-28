@@ -1,7 +1,9 @@
 // Screenshots of the web build at phone size: Today by day and by night, in
-// Hindi and on a fresh install, the welcome screen and the Gita reader. The
-// app reads the sample catalogue from the tests, served from this script as
-// if it were the nightly file.
+// Hindi and on a fresh install, the welcome screen, the Gita reader, Ask, an
+// answer, the helplines, saints, paths and settings. The app reads the
+// sample catalogue from the tests, served from this script as if it were the
+// nightly file. YouTube is out of reach here, so a plain stand-in marks
+// where its player sits.
 //
 //   npm run screens -w mobile        writes apps/mobile/screens/*.png
 //
@@ -32,6 +34,22 @@ function verseNote(body) {
     pendingSaves: {},
   };
 }
+
+/** The sample answer 5 saved for later. */
+const SAVED_ANSWER = {
+  saves: { 'answer:answer-5': { kind: 'answer', ref: 'answer-5', createdAt: '2026-10-27T15:00:00.000Z' } },
+};
+
+/** Day 1 of the sample path done this morning, so day 2 waits for tomorrow. */
+const DAY_ONE_DONE = {
+  progress: { 'path-1:1': { pathId: 'path-1', day: 1, completedAt: '2026-10-28T01:00:00.000Z' } },
+};
+
+/** Where YouTube's player would be: a dark frame with a play button, labelled as a stand-in. */
+const PLAYER_STAND_IN = `<!doctype html><html><body style="margin:0;height:100vh;display:flex;flex-direction:column;
+align-items:center;justify-content:center;gap:10px;background:#111;font:13px system-ui;color:#aaa">
+<svg width="68" height="48" viewBox="0 0 68 48"><rect width="68" height="48" rx="12" fill="#c4302b"/>
+<path d="M27 15v18l16-9z" fill="#fff"/></svg>YouTube player</body></html>`;
 
 const SHOTS = [
   { name: 'today-light', time: '2026-10-28T07:15:00+05:30', prefs: { language: 'en' }, waitFor: "Today's guidance" },
@@ -77,6 +95,83 @@ const SHOTS = [
     prefs: { language: 'hi' },
     userData: verseNote('कर्म करो, फल की चिंता मत करो। हर परीक्षा से पहले इसे पढ़ना।'),
     waitFor: 'नोट हटाएँ',
+  },
+  {
+    name: 'ask',
+    path: '/ask',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    userData: SAVED_ANSWER,
+    waitFor: 'Saved answers',
+  },
+  {
+    name: 'ask-hindi',
+    path: '/ask',
+    time: '2026-10-28T19:10:00+05:30',
+    prefs: { language: 'hi' },
+    waitFor: 'विषय देखें',
+  },
+  {
+    name: 'answer',
+    path: '/answer/answer-5',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    waitFor: 'One small step',
+  },
+  {
+    name: 'answer-dark',
+    path: '/answer/answer-5',
+    time: '2026-10-28T19:10:00+05:30',
+    prefs: { language: 'en' },
+    waitFor: 'One small step',
+  },
+  { name: 'crisis', path: '/crisis', time: '2026-10-28T23:40:00+05:30', prefs: { language: 'en' }, waitFor: 'Call 14416' },
+  {
+    name: 'path',
+    path: '/path/calming-a-restless-mind',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    waitFor: 'Mark day 1 done',
+  },
+  {
+    name: 'path-tomorrow',
+    path: '/path/calming-a-restless-mind',
+    time: '2026-10-28T19:10:00+05:30',
+    prefs: { language: 'en' },
+    userData: DAY_ONE_DONE,
+    waitFor: 'Day 2 opens tomorrow.',
+  },
+  {
+    name: 'paths',
+    path: '/paths',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    userData: DAY_ONE_DONE,
+    waitFor: '1 of 7 days done',
+  },
+  { name: 'saints', path: '/saints', time: '2026-10-28T07:15:00+05:30', prefs: { language: 'en' }, waitFor: 'Sample Saint A' },
+  {
+    name: 'settings',
+    path: '/settings',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en', reminderTime: '07:00' },
+    waitFor: 'Daily reminder',
+  },
+  {
+    name: 'settings-end',
+    path: '/settings',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en', reminderTime: '07:00' },
+    waitFor: 'Daily reminder',
+    scrollToEnd: true,
+  },
+  {
+    name: 'answer-end',
+    path: '/answer/answer-5',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    waitFor: 'One small step',
+    scrollToEnd: true,
   },
 ];
 
@@ -143,11 +238,23 @@ async function capture(browser, shot, path) {
     }, saved);
     const page = await context.newPage();
     if (shot.offline) await page.route(`${origin}/catalogue.json`, (route) => route.abort('internetdisconnected'));
+    await page.route('https://www.youtube-nocookie.com/**', (route) =>
+      route.fulfill({ contentType: 'text/html', body: PLAYER_STAND_IN }),
+    );
     await page.clock.setFixedTime(new Date(shot.time));
     await page.goto(`${origin}${shot.path ?? '/'}`);
     await page.getByText(shot.waitFor, { exact: true }).first().waitFor({ timeout: 30_000 });
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => document.fonts.ready);
+    if (shot.scrollToEnd) {
+      await page.evaluate(() => {
+        for (const element of document.querySelectorAll('div')) {
+          if (element.scrollHeight > element.clientHeight + 1 && getComputedStyle(element).overflowY !== 'visible') {
+            element.scrollTop = element.scrollHeight;
+          }
+        }
+      });
+    }
     // Lets the screen's fade-in finish.
     await page.waitForTimeout(600);
     await page.screenshot({ path });

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Catalogue } from '@sant-vaani/core';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ReactNode } from 'react';
 
 import { AppProviders } from '@/AppProviders';
@@ -42,11 +43,13 @@ export function TestProviders({
   catalogue = sampleCatalogue,
   now = TEST_MORNING,
   gita = fakeGita(),
+  supabase = null,
 }: {
   children: ReactNode;
   catalogue?: Catalogue;
   now?: Date;
   gita?: GitaSource;
+  supabase?: SupabaseClient | null;
 }) {
   return (
     <AppProviders
@@ -54,7 +57,7 @@ export function TestProviders({
       catalogue={{ bundled: catalogue, store: emptyStore(), url: null }}
       openGita={async () => gita}
       systemScheme="light"
-      supabase={null}
+      supabase={supabase}
     >
       {children}
     </AppProviders>

@@ -49,7 +49,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     return { prefs, city: cityById(prefs.cityId) ?? defaultCityFor(timeZone), update };
   }, [prefs, update]);
 
-  if (!value) return null;
+  if (!prefs) return null;
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>;
 }
 

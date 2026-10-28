@@ -16,9 +16,11 @@ type SignIn = {
 type Auth = SignIn & {
   /** Null in builds made without Supabase settings. */
   client: SupabaseClient | null;
+  /** Tries signing in again now, after a failure. */
+  retry(): void;
 };
 
-const AuthContext = createContext<Auth>({ userId: null, status: 'off', client: null });
+const AuthContext = createContext<Auth>({ userId: null, status: 'off', client: null, retry() {} });
 
 /**
  * Everyone starts as a guest: once they confirm they are 18 or older, the
@@ -44,10 +46,10 @@ export function AuthProvider({ client = supabase(), children }: { client?: Supab
       }
     };
 
-    setAuth((current) => (current.status === 'signed-in' ? current : { userId: null, status: 'signing-in' }));
     (async () => {
       const { data } = await client.auth.getSession();
       if (data.session) return signedIn(data.session);
+      if (live) setAuth({ userId: null, status: 'signing-in' });
       const { data: created, error } = await client.auth.signInAnonymously();
       if (error) throw error;
       signedIn(created.session);
@@ -75,7 +77,7 @@ export function AuthProvider({ client = supabase(), children }: { client?: Supab
   }, [auth.status]);
 
   // Keeps the profile in step with the choices made on this phone.
-  const { language, themePref, cityId, ageConfirmedAt } = prefs;
+  const { language, themePref, cityId, ageConfirmedAt, reminderTime } = prefs;
   useEffect(() => {
     if (!client || !auth.userId) return;
     client
@@ -85,15 +87,19 @@ export function AuthProvider({ client = supabase(), children }: { client?: Supab
         theme_pref: themePref,
         city_id: cityId,
         age_confirmed_at: ageConfirmedAt,
+        reminder_time: reminderTime,
         time_zone: getCalendars()[0]?.timeZone ?? null,
       })
       .eq('user_id', auth.userId)
       .then(({ error }) => {
         if (error) console.warn('Could not save the profile', error.message);
       });
-  }, [client, auth.userId, language, themePref, cityId, ageConfirmedAt]);
+  }, [client, auth.userId, language, themePref, cityId, ageConfirmedAt, reminderTime]);
 
-  const value = useMemo(() => ({ ...auth, client }), [auth, client]);
+  const value = useMemo(
+    () => ({ ...auth, client, retry: () => setAttempt((n) => n + 1) }),
+    [auth, client],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
