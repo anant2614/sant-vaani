@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: App, studio and core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Server copy of the core package is up to date
+        run: npm run check:core
+      - name: Gita data build
+        run: npm run test:gita
+
+      - name: Core
+        run: |
+          npm run typecheck -w @sant-vaani/core
+          npm test -w @sant-vaani/core
+
+      - name: Curator Studio
+        run: |
+          npm run typecheck -w studio
+          npm run lint -w studio
+          npm test -w studio
+          npm run build -w studio
+
+      - name: App
+        working-directory: apps/mobile
+        run: |
+          # Writes the typed route types that tsc checks links against.
+          npx expo customize tsconfig.json
+          npm run typecheck
+          npm run lint
+          npm test
+
+  functions:
+    name: Server functions
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/functions
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check */index.ts
+      - run: deno lint
+      - run: deno test --allow-env --allow-read
+
+  database:
+    name: Database rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: supabase/setup-cli@v1
+        with:
+          # Keep in step with the supabase devDependency in package.json.
+          version: 2.122.0
+      # Postgres only, with the migrations and seed applied.
+      - run: supabase db start
+      - run: supabase test db
