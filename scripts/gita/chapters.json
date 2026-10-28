@@ -1,0 +1,20 @@
+[
+  { "number": 1, "name_sa": "अर्जुनविषादयोग", "name_iast": "Arjunaviṣāda Yoga", "name_en": "Arjuna's Despair" },
+  { "number": 2, "name_sa": "सांख्ययोग", "name_iast": "Sāṃkhya Yoga", "name_en": "The Yoga of Knowledge" },
+  { "number": 3, "name_sa": "कर्मयोग", "name_iast": "Karma Yoga", "name_en": "The Yoga of Action" },
+  { "number": 4, "name_sa": "ज्ञानकर्मसंन्यासयोग", "name_iast": "Jñānakarmasaṃnyāsa Yoga", "name_en": "Knowledge and Letting Go of Action" },
+  { "number": 5, "name_sa": "कर्मसंन्यासयोग", "name_iast": "Karmasaṃnyāsa Yoga", "name_en": "Renouncing the Fruits of Action" },
+  { "number": 6, "name_sa": "आत्मसंयमयोग", "name_iast": "Ātmasaṃyama Yoga", "name_en": "Mastery of the Self" },
+  { "number": 7, "name_sa": "ज्ञानविज्ञानयोग", "name_iast": "Jñānavijñāna Yoga", "name_en": "Knowledge and Realisation" },
+  { "number": 8, "name_sa": "अक्षरब्रह्मयोग", "name_iast": "Akṣarabrahma Yoga", "name_en": "The Imperishable" },
+  { "number": 9, "name_sa": "राजविद्याराजगुह्ययोग", "name_iast": "Rājavidyārājaguhya Yoga", "name_en": "The Royal Knowledge and the Royal Secret" },
+  { "number": 10, "name_sa": "विभूतियोग", "name_iast": "Vibhūti Yoga", "name_en": "Divine Glories" },
+  { "number": 11, "name_sa": "विश्वरूपदर्शनयोग", "name_iast": "Viśvarūpadarśana Yoga", "name_en": "The Vision of the Universal Form" },
+  { "number": 12, "name_sa": "भक्तियोग", "name_iast": "Bhakti Yoga", "name_en": "The Yoga of Devotion" },
+  { "number": 13, "name_sa": "क्षेत्रक्षेत्रज्ञविभागयोग", "name_iast": "Kṣetrakṣetrajñavibhāga Yoga", "name_en": "The Field and the Knower of the Field" },
+  { "number": 14, "name_sa": "गुणत्रयविभागयोग", "name_iast": "Guṇatrayavibhāga Yoga", "name_en": "The Three Gunas" },
+  { "number": 15, "name_sa": "पुरुषोत्तमयोग", "name_iast": "Puruṣottama Yoga", "name_en": "The Supreme Person" },
+  { "number": 16, "name_sa": "दैवासुरसम्पद्विभागयोग", "name_iast": "Daivāsurasampadvibhāga Yoga", "name_en": "The Divine and the Demonic" },
+  { "number": 17, "name_sa": "श्रद्धात्रयविभागयोग", "name_iast": "Śraddhātrayavibhāga Yoga", "name_en": "The Three Kinds of Faith" },
+  { "number": 18, "name_sa": "मोक्षसंन्यासयोग", "name_iast": "Mokṣasaṃnyāsa Yoga", "name_en": "Freedom through Letting Go" }
+]
