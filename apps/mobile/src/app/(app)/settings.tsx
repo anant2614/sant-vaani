@@ -14,6 +14,7 @@ import { Screen } from '@/components/Screen';
 import { Text } from '@/components/Text';
 import { useStrings } from '@/i18n/strings';
 import { allowNotifications } from '@/notifications';
+import { scheduleReminder } from '@/paths/reminders';
 import { usePrefs } from '@/prefs/PrefsProvider';
 import { useTheme } from '@/theme/useTheme';
 import { deleteAccount } from '@/user/sync';
@@ -54,6 +55,9 @@ export default function SettingsScreen() {
       return;
     }
     resetAnalytics();
+    // The welcome screen replaces the app before its reminder hook sees the
+    // cleared time, so the reminder is turned off here.
+    await scheduleReminder(null, t.reminder).catch((error: unknown) => console.warn('Could not cancel the reminder', error));
     // Without the age confirmation the welcome screen takes over, as on a new phone.
     update({ ageConfirmedAt: null, cityId: null, reminderTime: null });
   };

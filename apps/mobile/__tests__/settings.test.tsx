@@ -89,6 +89,38 @@ test('deleting the account erases it everywhere and starts over at the welcome s
   expect(await savedPrefs()).toMatchObject({ ageConfirmedAt: null, cityId: null, reminderTime: null });
 });
 
+test('deleting the account also stops the daily reminder', async () => {
+  permissions.mockResolvedValue(ALLOWED);
+  await seedPrefs({ ...ADULT, language: 'en', reminderTime: '07:00' });
+  await renderSettings(fakeSupabase());
+  await fireEvent.press(await screen.findByRole('button', { name: 'Delete account' }));
+  const cancel = jest.mocked(Notifications.cancelScheduledNotificationAsync);
+  cancel.mockClear();
+
+  await fireEvent.press(screen.getByRole('button', { name: 'Delete everything' }));
+
+  expect(await screen.findByRole('checkbox', { name: 'I am 18 or older' })).toBeOnTheScreen();
+  expect(cancel).toHaveBeenCalledWith('path-reminder');
+});
+
+test('offline with an expired sign-in, deleting fails instead of skipping the server', async () => {
+  await seedPrefs({ ...ADULT, language: 'en' });
+  await createUserStore().saveNote({ chapter: 2, verse: 47, body: 'Do the work, let go of the result.' });
+  const server = fakeSupabase();
+  server.expireSession();
+  server.setOffline(true);
+  await renderSettings(server);
+
+  await fireEvent.press(await screen.findByRole('button', { name: 'Delete account' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Delete everything' }));
+
+  expect(
+    await screen.findByText("Your account wasn't deleted. Check your connection and try again."),
+  ).toBeOnTheScreen();
+  expect(await AsyncStorage.getItem(USER_DATA_KEY)).toContain('Do the work');
+  expect(await savedPrefs()).toMatchObject({ ageConfirmedAt: ADULT.ageConfirmedAt });
+});
+
 test('without a connection the account and its notes stay', async () => {
   await seedPrefs({ ...ADULT, language: 'en' });
   await createUserStore().saveNote({ chapter: 2, verse: 47, body: 'Do the work, let go of the result.' });

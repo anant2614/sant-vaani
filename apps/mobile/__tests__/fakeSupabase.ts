@@ -8,7 +8,9 @@ const SESSION = { access_token: 'guest-token', user: { id: 'user-1' } };
  * The Supabase calls the app makes, recorded instead of sent. While offline
  * every call fails the way supabase-js reports a network error. `ask`
  * plays the Ask function: it gets the request body and returns the reply,
- * or a number to reply with that HTTP status instead.
+ * or a number to reply with that HTTP status instead. After
+ * `expireSession`, reading the session offline fails the way auth-js does
+ * when the access token has expired and the refresh cannot reach the server.
  */
 export function fakeSupabase({
   signedIn = true,
@@ -19,6 +21,7 @@ export function fakeSupabase({
 } = {}) {
   const calls: Call[] = [];
   let offline = false;
+  let expired = false;
   let session = signedIn ? SESSION : null;
   const answer = (table: string, op: Call['op'], payload: unknown) => {
     calls.push({ table, op, payload, ok: !offline });
@@ -47,7 +50,10 @@ export function fakeSupabase({
       }),
     },
     auth: {
-      getSession: async () => ({ data: { session }, error: null }),
+      getSession: async () =>
+        session && expired && offline
+          ? { data: { session: null }, error: { name: 'AuthRetryableFetchError', message: 'Failed to fetch', status: 0 } }
+          : { data: { session }, error: null },
       signInAnonymously: async () => {
         session = SESSION;
         return { data: { session, user: session.user }, error: null };
@@ -67,6 +73,10 @@ export function fakeSupabase({
     sent: (table: string) => calls.filter((call) => call.table === table && call.ok),
     setOffline(value: boolean) {
       offline = value;
+    },
+    /** The access token runs out, so the next session read must refresh it. */
+    expireSession() {
+      expired = true;
     },
   };
 }

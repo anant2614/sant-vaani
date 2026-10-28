@@ -62,10 +62,17 @@ export async function syncUserData(
  * notes, saves, progress and questions, then everything this phone kept
  * for it.
  * Without a connection it fails and keeps the notes, so nothing is lost
- * by a deletion that did not happen.
+ * by a deletion that did not happen. That includes a sign-in that has
+ * expired and cannot be refreshed offline: the account still exists on the
+ * server, so only a phone that never signed in skips the server.
  */
 export async function deleteAccount(client: SupabaseClient | null, store: UserStore): Promise<void> {
-  const session = client ? (await client.auth.getSession()).data.session : null;
+  let session = null;
+  if (client) {
+    const { data, error } = await client.auth.getSession();
+    if (error) throw new Error(`Could not check the sign-in: ${error.message}`);
+    session = data.session;
+  }
   if (client && session) {
     check(await client.rpc('delete_my_account'), 'delete the account');
     // The account is gone, so only this phone's copy of the session is left to forget.
