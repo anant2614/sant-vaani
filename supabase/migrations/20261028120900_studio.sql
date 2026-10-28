@@ -62,6 +62,29 @@ begin
     if new.video_id is distinct from old.video_id then
       raise exception 'a clip cannot move to another video';
     end if;
+    -- The saint comes from the video's channel, and the maker and reviewer
+    -- from who did the work, so a direct update cannot rewrite them.
+    -- Removing a staff member still clears their name (on delete set null).
+    if new.saint_id is distinct from old.saint_id then
+      raise exception 'a clip''s saint comes from its video and cannot be changed' using errcode = 'check_violation';
+    end if;
+    if (new.created_by is distinct from old.created_by
+        and (new.created_by is not null or exists (select 1 from public.staff where user_id = old.created_by)))
+      or (new.reviewed_by is distinct from old.reviewed_by
+        and (new.reviewed_by is not null or exists (select 1 from public.staff where user_id = old.reviewed_by)))
+    then
+      raise exception 'who made and who approved a clip cannot be changed' using errcode = 'check_violation';
+    end if;
+    -- A sensitive topic keeps a clip sensitive, and only a reviewer or
+    -- admin can take the mark off.
+    new.sensitive := new.sensitive or exists (
+      select 1 from public.clip_topics ct join public.topics t on t.id = ct.topic_id
+      where ct.clip_id = new.id and t.sensitive
+    );
+    if old.sensitive and not new.sensitive and uid is not null
+      and not exists (select 1 from public.staff where user_id = uid and role in ('reviewer', 'admin')) then
+      raise exception 'only a reviewer or admin can mark a clip as not sensitive' using errcode = 'check_violation';
+    end if;
     -- A person changed what the clip shows or says.
     edited := uid is not null
       and (new.start_seconds, new.end_seconds, new.summary_en, new.summary_hi)
@@ -82,8 +105,9 @@ begin
       end if;
     end if;
   elsif tg_op = 'UPDATE' and new.status = 'approved' and new.sensitive and (
-    -- Became sensitive after approval without a second reviewer.
-    (not old.sensitive and (new.reviewed_by is null or new.reviewed_by = new.created_by))
+    -- Became sensitive after an approval that was not a second review.
+    (not old.sensitive and (new.reviewed_by is null or new.reviewed_by = new.created_by
+      or not exists (select 1 from public.staff where user_id = new.reviewed_by and role in ('reviewer', 'admin'))))
     -- Edited by its maker, or by someone who cannot give the second review.
     or (edited and (uid = new.created_by
       or not exists (select 1 from public.staff where user_id = uid and role in ('reviewer', 'admin')))))
@@ -166,7 +190,15 @@ begin
       save_clip.summary_en, save_clip.summary_hi, is_sensitive, next_status
     )
     returning id into saved_id;
-  else
+  end if;
+
+  -- Topics first, so an edit is checked against the topics it ends with.
+  delete from public.clip_topics ct where ct.clip_id = saved_id and ct.topic_id <> all (save_clip.topic_ids);
+  insert into public.clip_topics (clip_id, topic_id)
+    select saved_id, t from unnest(save_clip.topic_ids) as t
+    on conflict do nothing;
+
+  if save_clip.clip_id is not null then
     update public.clips c
       set start_seconds = save_clip.start_seconds,
           end_seconds = save_clip.end_seconds,
@@ -177,11 +209,6 @@ begin
           status = next_status
       where c.id = saved_id;
   end if;
-
-  delete from public.clip_topics ct where ct.clip_id = saved_id and ct.topic_id <> all (save_clip.topic_ids);
-  insert into public.clip_topics (clip_id, topic_id)
-    select saved_id, t from unnest(save_clip.topic_ids) as t
-    on conflict do nothing;
   return saved_id;
 end
 $$;

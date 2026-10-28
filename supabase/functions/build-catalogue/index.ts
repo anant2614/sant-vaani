@@ -138,7 +138,11 @@ async function notifyAnswered(db: SupabaseClient, catalogue: Catalogue): Promise
 }
 
 serveJob('build-catalogue', async (db) => {
-  const catalogue = buildCatalogue(await readCatalogueRows(db), new Date());
+  const leftOut: string[] = [];
+  const catalogue = buildCatalogue(await readCatalogueRows(db), new Date(), (problem) => {
+    console.warn(`build-catalogue: ${problem}`);
+    leftOut.push(problem);
+  });
   check(
     await db.storage
       .from(CATALOGUE_BUCKET)
@@ -164,6 +168,7 @@ serveJob('build-catalogue', async (db) => {
     clips: catalogue.clips.length,
     paths: catalogue.paths.length,
     backlogClosed: closed,
+    ...(leftOut.length > 0 ? { leftOut } : {}),
     ...notify,
   };
 });

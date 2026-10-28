@@ -125,7 +125,7 @@ function rows(): CatalogueRows {
 }
 
 Deno.test('drops answers with fewer than 2 live clips', () => {
-  const catalogue = buildCatalogue(rows(), NOW);
+  const catalogue = buildCatalogue(rows(), NOW, () => {});
   assertEquals(
     catalogue.answers.map((a) => a.id),
     ['a-stop', 'a-night', 'a-anger'],
@@ -135,7 +135,7 @@ Deno.test('drops answers with fewer than 2 live clips', () => {
 });
 
 Deno.test('orders answers by topic then question', () => {
-  const catalogue = buildCatalogue(rows(), NOW);
+  const catalogue = buildCatalogue(rows(), NOW, () => {});
   assertEquals(
     catalogue.questions.map((q) => q.id),
     ['q-stop', 'q-night', 'q-anger'],
@@ -151,7 +151,7 @@ Deno.test('orders answers by topic then question', () => {
 });
 
 Deno.test('carries only the clips and saints in use, and a path day loses a clip that came down', () => {
-  const catalogue = buildCatalogue(rows(), NOW);
+  const catalogue = buildCatalogue(rows(), NOW, () => {});
   assertEquals(catalogue.version, 1);
   assertEquals(catalogue.generatedAt, NOW.toISOString());
   assertEquals(catalogue.clips.map((c) => c.id).sort(), ['c-path', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6']);
@@ -175,15 +175,38 @@ Deno.test('carries only the clips and saints in use, and a path day loses a clip
 Deno.test('a path without all seven days stays out instead of breaking the file', () => {
   const input = rows();
   input.paths[0]!.days.pop();
-  assertEquals(buildCatalogue(input, NOW).paths, []);
+  assertEquals(buildCatalogue(input, NOW, () => {}).paths, []);
 });
 
-Deno.test('a catalogue that breaks the rules is never published', () => {
+Deno.test('an answer that repeats a saint keeps the first clip of each saint, and says so', () => {
   const input = rows();
-  // Two clips by the same saint in one answer cannot reach the app.
+  // c4 and c1 are both by saint 1. The database refuses this, but one bad answer must not stop every build.
+  input.answers[0]!.clips = [
+    { clip_id: 'c4', position: 1 },
+    { clip_id: 'c1', position: 2 },
+    { clip_id: 'c5', position: 3 },
+  ];
+  const problems: string[] = [];
+  const catalogue = buildCatalogue(input, NOW, (problem) => problems.push(problem));
+  assertEquals(catalogue.answers.find((a) => a.id === 'a-anger')?.clipIds, ['c4', 'c5']);
+  assertEquals(problems, ['answer a-anger repeats saint s1, so clip c1 was left out']);
+});
+
+Deno.test('an answer left with one saint drops out, and the rest still ships', () => {
+  const input = rows();
   input.answers[0]!.clips = [
     { clip_id: 'c4', position: 1 },
     { clip_id: 'c1', position: 2 },
   ];
-  assertThrows(() => buildCatalogue(input, NOW), Error, 'repeats saint');
+  const catalogue = buildCatalogue(input, NOW, () => {});
+  assertEquals(
+    catalogue.answers.map((a) => a.id),
+    ['a-stop', 'a-night'],
+  );
+});
+
+Deno.test('a catalogue that breaks the rules is never published', () => {
+  const input = rows();
+  input.clips[0]!.youtube_id = 'not a video';
+  assertThrows(() => buildCatalogue(input, NOW, () => {}), Error, 'not a YouTube video id');
 });

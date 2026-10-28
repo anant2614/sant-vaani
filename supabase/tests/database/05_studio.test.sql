@@ -1,7 +1,7 @@
 -- Studio helpers: save_clip, save_answer and the clip_cards view.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(20);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-000000000011', 'curator@example.com'),
@@ -108,6 +108,32 @@ select is(
   'needs_second_review',
   'editing an approved sensitive clip by its maker sends it back for a second review'
 );
+select throws_like(
+  $$ select public.save_clip((select id from saved where name = 'grief'), 'dddddddd-0000-4000-8000-000000000002',
+       60, 200, 'hi', 'On losing a parent', null, false,
+       array['ffffffff-0000-4000-8000-000000000001']::uuid[], true) $$,
+  '%only a reviewer or admin can mark a clip as not sensitive%',
+  'a curator cannot save a sensitive clip as not sensitive'
+);
+
+reset role;
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "00000000-0000-4000-8000-000000000021", "role": "authenticated"}';
+select lives_ok(
+  $$ select public.save_clip((select id from saved where name = 'grief'), 'dddddddd-0000-4000-8000-000000000002',
+       60, 200, 'hi', 'On losing a parent', null, false,
+       array['ffffffff-0000-4000-8000-000000000001']::uuid[], true) $$,
+  'a reviewer moves the clip to a topic that is not sensitive'
+);
+select is(
+  (select status::text || ' ' || sensitive::text from public.clips where id = (select id from saved where name = 'grief')),
+  'approved false',
+  'one save by a reviewer changes the topic and takes the sensitive mark off'
+);
+
+reset role;
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "00000000-0000-4000-8000-000000000011", "role": "authenticated"}';
 
 -- clip_cards ------------------------------------------------------------------
 select is(

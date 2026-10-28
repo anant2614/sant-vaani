@@ -1,4 +1,5 @@
 -- The curation rules, enforced in the database so no screen can skip them:
+--   * a clip keeps the saint of its video's channel;
 --   * a clip on a sensitive topic needs a second reviewer who did not make it;
 --   * an answer has 3 to 5 live clips by different saints, a verse and a step;
 --   * a retired clip or a taken-down saint flags its answers for replacement;
@@ -245,6 +246,24 @@ $$;
 create trigger saints_before_update
   before update on public.saints
   for each row execute function public.saints_before_update();
+
+-- A channel's clips carry its saint, so it cannot move once it has any.
+create function public.channels_before_update() returns trigger
+language plpgsql set search_path = ''
+as $$
+begin
+  if new.saint_id is distinct from old.saint_id and exists (
+    select 1 from public.clips c join public.videos v on v.id = c.video_id where v.channel_id = new.id
+  ) then
+    raise exception 'a channel with clips cannot move to another saint' using errcode = 'check_violation';
+  end if;
+  return new;
+end
+$$;
+
+create trigger channels_before_update
+  before update on public.channels
+  for each row execute function public.channels_before_update();
 
 -- One switch hides every clip of a saint, for a takedown request.
 create function public.set_saint_takedown(saint_id uuid, hidden boolean) returns void

@@ -60,9 +60,11 @@ const verseRef = (chapter: number | null, verse: number | null) => (chapter && v
  * The one file the app downloads each night: answers in topic order with
  * their live clips, and only the questions, topics, clips and saints they
  * use. The result is checked against the catalogue rules, so a broken file
- * throws here instead of reaching phones.
+ * throws here instead of reaching phones. An answer that repeats a saint
+ * loses the repeat and is reported, so one bad answer cannot hold back
+ * every later file, takedowns included.
  */
-export function buildCatalogue(rows: CatalogueRows, now: Date): Catalogue {
+export function buildCatalogue(rows: CatalogueRows, now: Date, report: (problem: string) => void): Catalogue {
   const saints = new Map(
     rows.saints.flatMap((s) => {
       const name = localized(s.name_en, s.name_hi);
@@ -94,10 +96,20 @@ export function buildCatalogue(rows: CatalogueRows, now: Date): Catalogue {
       const topic = question ? topics.get(question.topic_id) : undefined;
       const text = question ? localized(question.text_en, question.text_hi) : null;
       if (answer.status === 'draft' || !question || !topic || !text) return [];
+      const saintsSeen = new Set<string>();
       const clipIds = [...answer.clips]
         .sort((a, b) => a.position - b.position)
         .map((c) => c.clip_id)
         .filter((id) => liveClips.has(id))
+        .filter((id) => {
+          const saintId = liveClips.get(id)!.saintId;
+          if (saintsSeen.has(saintId)) {
+            report(`answer ${answer.id} repeats saint ${saintId}, so clip ${id} was left out`);
+            return false;
+          }
+          saintsSeen.add(saintId);
+          return true;
+        })
         .slice(0, MAX_CLIPS);
       return clipIds.length >= MIN_LIVE_CLIPS ? [{ answer, question, topic, text, clipIds }] : [];
     })
