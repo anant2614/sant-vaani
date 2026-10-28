@@ -244,6 +244,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Curator Studio signs in with a code, not a link. Copy this template into
+# the hosted project's email settings too (docs/setup.md).
+[auth.email.template.magic_link]
+subject = "Your Sant Vaani sign-in code"
+content_path = "./supabase/templates/sign_in_code.html"
+
+[auth.email.template.confirmation]
+subject = "Your Sant Vaani sign-in code"
+content_path = "./supabase/templates/sign_in_code.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
