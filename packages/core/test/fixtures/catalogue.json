@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-28T20:00:00.000Z",
+  "saints": [
+    { "id": "s-a", "name": { "en": "Sample Saint A", "hi": "संत अ" }, "initials": "SA" },
+    { "id": "s-b", "name": { "en": "Sample Saint B" }, "initials": "SB" },
+    { "id": "s-c", "name": { "en": "Sample Saint C" }, "initials": "SC" }
+  ],
+  "topics": [
+    { "id": "t-overthinking", "slug": "overthinking", "name": { "en": "Overthinking", "hi": "ज़्यादा सोचना" }, "sortOrder": 1 },
+    { "id": "t-anger", "slug": "anger", "name": { "en": "Anger", "hi": "क्रोध" }, "sortOrder": 2 }
+  ],
+  "questions": [
+    { "id": "q-overthinking", "topicId": "t-overthinking", "text": { "en": "How do I stop overthinking at night?" } },
+    { "id": "q-anger", "topicId": "t-anger", "text": { "en": "How do I stop reacting in anger?", "hi": "मैं गुस्से में प्रतिक्रिया देना कैसे रोकूँ?" } }
+  ],
+  "clips": [
+    { "id": "c-1", "saintId": "s-a", "youtubeId": "aaaaaaaaaaa", "start": 30, "end": 191, "language": "hi", "summary": { "en": "Sample summary one" } },
+    { "id": "c-2", "saintId": "s-b", "youtubeId": "bbbbbbbbbbb", "start": 0, "end": 185, "language": "en", "summary": { "en": "Sample summary two" } },
+    { "id": "c-3", "saintId": "s-c", "youtubeId": "ccccccccccc", "start": 600, "end": 738, "language": "mixed", "summary": { "en": "Sample summary three" } },
+    { "id": "c-4", "saintId": "s-a", "youtubeId": "ddddddddddd", "start": 12, "end": 130, "language": "hi", "summary": { "en": "Sample summary four" } },
+    { "id": "c-5", "saintId": "s-b", "youtubeId": "eeeeeeeeeee", "start": 45, "end": 245, "language": "en", "summary": { "en": "Sample summary five" } },
+    { "id": "c-6", "saintId": "s-c", "youtubeId": "fffffffffff", "start": 5, "end": 125, "language": "hi", "summary": { "en": "Sample summary six" } }
+  ],
+  "answers": [
+    { "id": "a-overthinking", "questionId": "q-overthinking", "clipIds": ["c-1", "c-2", "c-3"], "verse": { "chapter": 6, "verse": 35 }, "step": { "en": "Before sleep, write tomorrow's three tasks on paper and close the notebook." } },
+    { "id": "a-anger", "questionId": "q-anger", "clipIds": ["c-4", "c-5", "c-6"], "verse": { "chapter": 2, "verse": 63 }, "step": { "en": "When anger rises, take five slow breaths before you speak." } }
+  ],
+  "paths": [
+    {
+      "id": "p-calm",
+      "slug": "calming-a-restless-mind",
+      "title": { "en": "Calming a restless mind" },
+      "description": { "en": "Seven short days of practice for a mind that will not settle." },
+      "days": [
+        { "day": 1, "clipId": "c-1", "verse": { "chapter": 6, "verse": 35 }, "step": { "en": "Sit quietly for three minutes." } },
+        { "day": 2, "clipId": "c-2", "verse": { "chapter": 6, "verse": 26 }, "step": { "en": "Notice where the mind goes." } },
+        { "day": 3, "clipId": "c-3", "verse": { "chapter": 2, "verse": 47 }, "step": { "en": "Do one task without checking the result." } },
+        { "day": 4, "clipId": null, "verse": { "chapter": 2, "verse": 14 }, "step": { "en": "Name one feeling that came and went." } },
+        { "day": 5, "clipId": "c-4", "verse": { "chapter": 2, "verse": 70 }, "step": { "en": "Eat one meal without your phone." } },
+        { "day": 6, "clipId": "c-5", "verse": { "chapter": 12, "verse": 13 }, "step": { "en": "Say thank you to someone you overlook." } },
+        { "day": 7, "clipId": "c-6", "verse": { "chapter": 18, "verse": 66 }, "step": { "en": "Write what changed this week." } }
+      ]
+    }
+  ],
+  "dailyVerses": [
+    { "chapter": 2, "verse": 47 },
+    { "chapter": 2, "verse": 14 },
+    { "chapter": 6, "verse": 5 }
+  ]
+}

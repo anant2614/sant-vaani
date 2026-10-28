@@ -1,0 +1,25 @@
+{
+  "name": "sant-vaani",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "sync:core": "node scripts/sync-core.mjs",
+    "check:core": "node scripts/sync-core.mjs --check",
+    "gita:build": "node scripts/gita/build.mjs",
+    "test:gita": "node --test scripts/gita/",
+    "test:functions": "cd supabase/functions && deno test --allow-env --allow-read",
+    "test:db": "supabase test db"
+  },
+  "devDependencies": {
+    "supabase": "2.122.0",
+    "typescript": "~6.0.3"
+  }
+}
