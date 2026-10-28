@@ -29,6 +29,25 @@ describe('screenForCrisis', () => {
     'I wanna die',
     'mujhe jeene ka man nahi karta',
     'khud ko khatam kar lunga',
+    // Common phrasings the first lists missed (whole-branch review).
+    'mujhe marna hai',
+    'ab bas marna hai',
+    'मुझे मरना है',
+    'अब मुझे मरना है',
+    'main jaan de dunga',
+    'मैं अपनी जान दे दूंगा',
+    'sab khatam kar dena chahta hoon',
+    'सब कुछ खत्म कर देना चाहती हूँ',
+    'जीने की कोई वजह नहीं',
+    'jeene ki koi wajah nahi hai',
+    'jeene ka koi matlab nahi',
+    'kaash mar jaun',
+    'काश मर जाऊं',
+    'I want to never wake up',
+    'I just want to sleep and never wake up',
+    'thinking about ending it all',
+    'I want to end everything',
+    "I can't go on anymore",
   ];
 
   it.each(crisis)('flags "%s"', (text) => {
@@ -47,6 +66,14 @@ describe('screenForCrisis', () => {
     'marne ke baad kya hota hai',
     'मरने के बाद क्या होता है',
     'zindagi khatam ho jayegi tab kya bachega',
+    'mere papa mar gaye, kaise sambhalun',
+    'sabko ek din marna hai, phir dar kyun',
+    'mujhe marne se dar lagta hai',
+    'मुझे मरने से डर लगता है',
+    'I never wake up early, how do I build discipline',
+    'How do I end everything with my ex peacefully',
+    "I can't go on a trip because of work",
+    "We can't go on like this as a couple",
   ];
 
   it.each(safe)('does not flag "%s"', (text) => {
