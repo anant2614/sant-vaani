@@ -1,0 +1,29 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+coverage/
+dist/
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/web-build/
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/expo-env.d.ts
+
+# Next.js
+apps/studio/.next/
+apps/studio/out/
+apps/studio/next-env.d.ts
+*.tsbuildinfo
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+supabase/functions/.env
+
+# Local screenshots
+screens/
