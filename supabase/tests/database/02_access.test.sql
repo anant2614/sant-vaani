@@ -1,7 +1,7 @@
 -- Row-level security: people see only their own rows, content is staff only.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(21);
+select plan(22);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-000000000001', 'person@example.com'),
@@ -75,6 +75,12 @@ select throws_ok(
   '42501',
   null,
   'a person cannot reset their own ask limit'
+);
+select throws_ok(
+  $$ select public.claim_model_call(1000) $$,
+  '42501',
+  null,
+  'a person cannot spend the day''s model budget'
 );
 select throws_ok(
   $$ select public.publish_answer(gen_random_uuid()) $$,

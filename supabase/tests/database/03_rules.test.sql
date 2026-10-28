@@ -1,7 +1,7 @@
 -- Curation rules: answers, second review, retiring and takedowns, Ask helpers.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(25);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-000000000001', 'person@example.com'),
@@ -204,6 +204,11 @@ select is(
   ],
   array[true, true, false],
   'bump_ask_usage allows up to the daily limit'
+);
+select is(
+  array[public.claim_model_call(2), public.claim_model_call(2), public.claim_model_call(2)],
+  array[true, true, false],
+  'claim_model_call allows up to the day''s budget for everyone'
 );
 select is(
   public.record_backlog('how do i stop overthinking at work', 'How do I stop overthinking at work?', array['overthinking']),

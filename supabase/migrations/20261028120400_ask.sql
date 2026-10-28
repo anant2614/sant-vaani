@@ -55,12 +55,20 @@ create table public.ask_usage (
   primary key (user_id, day)
 );
 
+-- Questions sent to Claude each day across everyone, for the daily budget.
+create table public.model_calls (
+  day date primary key,
+  count integer not null default 0
+);
+
 alter table public.backlog_items enable row level security;
 alter table public.asks enable row level security;
 alter table public.notify_requests enable row level security;
 alter table public.ask_usage enable row level security;
+alter table public.model_calls enable row level security;
 
 revoke all on table public.backlog_items, public.asks, public.notify_requests, public.ask_usage from anon;
+revoke all on table public.model_calls from anon, authenticated;
 
 create policy "staff manage backlog" on public.backlog_items
   for all to authenticated using (public.is_staff()) with check (public.is_staff());
@@ -88,6 +96,18 @@ as $$
   values (bump_ask_usage.user_id, (now() at time zone 'Asia/Kolkata')::date, 1)
   on conflict on constraint ask_usage_pkey do update set count = u.count + 1
   returning count <= bump_ask_usage.max
+$$;
+
+-- Counts one question sent to Claude today (India time), across everyone,
+-- and says whether it is within the day's budget. Past it, Ask matches on
+-- words, so a flood of guest accounts cannot run up the bill.
+create function public.claim_model_call(max integer) returns boolean
+language sql security definer set search_path = ''
+as $$
+  insert into public.model_calls as m (day, count)
+  values ((now() at time zone 'Asia/Kolkata')::date, 1)
+  on conflict (day) do update set count = m.count + 1
+  returning count <= claim_model_call.max
 $$;
 
 -- Adds a question to the backlog, or counts it again if already there.
@@ -136,6 +156,8 @@ create trigger asks_after_delete
   for each row execute function public.asks_after_delete();
 
 revoke execute on function public.bump_ask_usage(uuid, integer) from public, anon, authenticated;
+revoke execute on function public.claim_model_call(integer) from public, anon, authenticated;
 revoke execute on function public.record_backlog(text, text, text[]) from public, anon, authenticated;
 grant execute on function public.bump_ask_usage(uuid, integer) to service_role;
+grant execute on function public.claim_model_call(integer) to service_role;
 grant execute on function public.record_backlog(text, text, text[]) to service_role;

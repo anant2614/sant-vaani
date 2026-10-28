@@ -37,6 +37,8 @@ export type AskDeps = {
   addToBacklog(entry: BacklogEntry): Promise<string | null>;
   /** Counts this question for today; false once the daily limit is passed. */
   bumpUsage(): Promise<boolean>;
+  /** Counts one Claude call against everyone's budget for today; false once it is spent. */
+  claimModelCall(): Promise<boolean>;
 };
 
 const MAX_TOPICS = 3;
@@ -78,6 +80,7 @@ export async function handleAsk(request: AskRequest, deps: AskDeps): Promise<Ask
   let threshold: number;
 
   try {
+    if (!(await deps.claimModelCall())) throw new Error("today's model budget is spent");
     const output = await deps.classify(request, questions);
     if (output.crisis) {
       await deps.recordAsk({ ...nothing, question: null, language: output.language, result: 'crisis', matcher: 'model' });

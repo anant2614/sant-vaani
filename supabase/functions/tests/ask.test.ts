@@ -44,6 +44,7 @@ function fakes(overrides: Partial<AskDeps> = {}) {
       return Promise.resolve('backlog-1');
     },
     bumpUsage: () => Promise.resolve(true),
+    claimModelCall: () => Promise.resolve(true),
     ...overrides,
   };
   return { deps, calls };
@@ -123,6 +124,14 @@ Deno.test('falls back to lexical matching when the model call fails', async () =
   const response = await handleAsk(ask('How can I stop overthinking'), deps);
   // Claude did not read it, so the app shows the helpline line with the answer.
   assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking', matchedBy: 'words' });
+  assertEquals(calls.records[0]?.matcher, 'lexical');
+});
+
+Deno.test("once the day's model budget is spent, Ask matches on words without calling Claude", async () => {
+  const { deps, calls } = fakes({ claimModelCall: () => Promise.resolve(false) });
+  const response = await handleAsk(ask('How can I stop overthinking'), deps);
+  assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking', matchedBy: 'words' });
+  assertEquals(calls.classify, 0);
   assertEquals(calls.records[0]?.matcher, 'lexical');
 });
 

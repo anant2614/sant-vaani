@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertRejects, assertStringIncludes } from '@std/assert';
 import type { AskableQuestion, AskModelOutput } from '../_shared/core/index.ts';
-import { modelClassifier } from '../ask/deps.ts';
+import { dailyModelCalls, DEFAULT_DAILY_MODEL_CALLS, modelClassifier } from '../ask/deps.ts';
 import { questionCatalogue, resolveMatches, userMessage } from '../ask/prompt.ts';
 
 const QUESTIONS: AskableQuestion[] = [
@@ -123,4 +123,12 @@ Deno.test('a refusal or unreadable reply is an error, so Ask falls back to word 
 Deno.test('without an API key the classifier fails each call instead of the whole function', async () => {
   const classify = modelClassifier({ apiKey: undefined, model: 'claude-opus-5-5' });
   await assertRejects(() => classify({ question: 'how do I stay calm', uiLanguage: 'en' }, QUESTIONS), Error, 'ANTHROPIC_API_KEY');
+});
+
+Deno.test('the daily model budget comes from ASK_DAILY_MODEL_CALLS, with a default when unset or unreadable', () => {
+  assertEquals(dailyModelCalls('500'), 500);
+  assertEquals(dailyModelCalls('0'), 0, 'zero turns Claude off for Ask');
+  for (const setting of [undefined, '', ' ', 'lots', '-5', '2.5']) {
+    assertEquals(dailyModelCalls(setting), DEFAULT_DAILY_MODEL_CALLS, `setting ${JSON.stringify(setting)}`);
+  }
 });

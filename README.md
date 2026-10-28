@@ -83,5 +83,7 @@ npm run test:db             # database tests; needs `npx supabase start`
 - The website, which needs the privacy, terms and shared-answer pages before
   the store submissions (see the setup guide).
 - Crash reports through Sentry.
+- Bot protection on guest sign-in, such as App Attest and Play Integrity.
+  Until then, Ask's daily model budget caps what scripted guests can cost.
 - Hindi and English meanings of the Gita verses, which need writing or
   licensing; the reader shows the Sanskrit and its transliteration.

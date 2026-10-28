@@ -20,6 +20,14 @@ const MODEL_TIMEOUT_MS = 15_000;
 const MAX_TOKENS = 4000;
 /** The catalogue changes once a night, so a few minutes of caching costs nothing. */
 const CATALOGUE_TTL_MS = 5 * 60_000;
+/** Three times the 1,000 typed questions a day expected at launch. */
+export const DEFAULT_DAILY_MODEL_CALLS = 3000;
+
+/** Questions Ask may send to Claude in a day, from ASK_DAILY_MODEL_CALLS. */
+export function dailyModelCalls(setting: string | undefined): number {
+  const value = Number(setting);
+  return setting?.trim() && Number.isInteger(value) && value >= 0 ? value : DEFAULT_DAILY_MODEL_CALLS;
+}
 
 /**
  * One Claude call per typed question. The client is made on first use, so
@@ -113,6 +121,17 @@ export function liveDeps(db: SupabaseClient, userId: string, classify: AskDeps['
       if (error) {
         // The limit guards cost; a database hiccup should not turn people away.
         console.error('ask: could not count the question', error.message);
+        return true;
+      }
+      return data === true;
+    },
+
+    async claimModelCall() {
+      const max = dailyModelCalls(Deno.env.get('ASK_DAILY_MODEL_CALLS'));
+      const { data, error } = await db.rpc('claim_model_call', { max });
+      if (error) {
+        // Like the personal limit: a database hiccup should not cost the person Claude's reading.
+        console.error('ask: could not count the model call', error.message);
         return true;
       }
       return data === true;

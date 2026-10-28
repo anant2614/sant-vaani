@@ -53,7 +53,13 @@ members, so nothing depends on one person's login.
 4. **Sign-in** (Authentication):
    - Turn on anonymous sign-ins. The app signs each person in as a guest
      after the 18+ confirmation, so notes, saves and questions are theirs
-     without an account.
+     without an account. The Rate Limits page allows 30 guest sign-ins an
+     hour from one IP address. Leave that at launch: mobile carriers in India
+     put many phones behind one address, so a lower limit turns real people
+     away, and Ask's daily model budget (below) caps what a flood of scripted
+     guests can cost. Before a wide public launch, add bot protection to guest
+     sign-in, such as App Attest and Play Integrity or a CAPTCHA; version 1
+     has none.
    - Set up custom SMTP with your email sending service (Authentication,
      Emails, SMTP Settings). Supabase's own sender only delivers to members of
      the Supabase team, two emails an hour, so curators would never get their
@@ -80,6 +86,7 @@ members, so nothing depends on one person's login.
    | `YOUTUBE_API_KEY` | From step 2 below |
    | `CRON_SECRET` | A long random value, for example from `openssl rand -hex 32`. The same value goes into Vault in the next step |
    | `ASK_MODEL`, `SUGGEST_MODEL` | Optional. Both default to `claude-opus-5-5` |
+   | `ASK_DAILY_MODEL_CALLS` | Optional. How many typed questions a day Ask sends to Claude, across everyone. Past it, Ask matches on words until midnight India time. Defaults to 3000, three times the launch estimate; 0 turns Claude off for Ask |
    | `EXPO_ACCESS_TOKEN` | Optional. Only if push security is turned on in the Expo account |
 
    Why `verify_jwt` is off for every function (`supabase/config.toml`): Ask
@@ -124,8 +131,10 @@ members, so nothing depends on one person's login.
 
 ## 3. Anthropic
 
-1. In the Claude Console, create the organization, add billing and set a
-   monthly spend limit.
+1. In the Claude Console, create the organization, add billing, set a
+   monthly spend limit and add a spend notification well below it. If the
+   limit is reached, Ask keeps working by matching on words, but no clips are
+   suggested overnight until the next month.
 2. Create an API key for the server functions and set it as
    `ANTHROPIC_API_KEY`.
 3. Ask uses Claude Opus 5.5 by default. Haiku 5.5 costs far less; before
