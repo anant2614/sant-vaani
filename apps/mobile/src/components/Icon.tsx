@@ -42,6 +42,13 @@ const ICONS = {
   chevron: <Path d="M9 5l7 7-7 7" />,
   back: <Path d="M15 5l-7 7 7 7" />,
   check: <Path d="M5 12.5l4.5 4.5L19 7.5" />,
+  bookmark: <Path d="M6.5 3.5h11v17L12 16.2l-5.5 4.3z" />,
+  note: (
+    <>
+      <Path d="M4.5 19.5l1-4.2L16 4.8a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.7 18.5z" />
+      <Path d="M14 6.8l3.2 3.2" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof ICONS;
@@ -51,18 +58,21 @@ export function Icon({
   color,
   size = 22,
   strokeWidth = 1.6,
+  filled = false,
 }: {
   name: IconName;
   color: string;
   size?: number;
   strokeWidth?: number;
+  /** Fills the shape too, for a chosen state such as a saved bookmark. */
+  filled?: boolean;
 }) {
   return (
     <Svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? color : 'none'}
       stroke={color}
       strokeWidth={strokeWidth}
       strokeLinecap="round"

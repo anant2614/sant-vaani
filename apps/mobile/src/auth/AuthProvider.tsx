@@ -1,19 +1,24 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { getCalendars } from 'expo-localization';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 
 import { identify } from '@/analytics';
 import { usePrefs } from '@/prefs/PrefsProvider';
 import { supabase } from './supabase';
 
-type Auth = {
+type SignIn = {
   /** The guest account's id once signed in. */
   userId: string | null;
   status: 'off' | 'waiting' | 'signing-in' | 'signed-in' | 'failed';
 };
 
-const AuthContext = createContext<Auth>({ userId: null, status: 'off' });
+type Auth = SignIn & {
+  /** Null in builds made without Supabase settings. */
+  client: SupabaseClient | null;
+};
+
+const AuthContext = createContext<Auth>({ userId: null, status: 'off', client: null });
 
 /**
  * Everyone starts as a guest: once they confirm they are 18 or older, the
@@ -23,7 +28,7 @@ const AuthContext = createContext<Auth>({ userId: null, status: 'off' });
 export function AuthProvider({ client = supabase(), children }: { client?: SupabaseClient | null; children: ReactNode }) {
   const { prefs } = usePrefs();
   const confirmed = prefs.ageConfirmedAt !== null;
-  const [auth, setAuth] = useState<Auth>({ userId: null, status: client ? 'waiting' : 'off' });
+  const [auth, setAuth] = useState<SignIn>({ userId: null, status: client ? 'waiting' : 'off' });
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
@@ -88,7 +93,8 @@ export function AuthProvider({ client = supabase(), children }: { client?: Supab
       });
   }, [client, auth.userId, language, themePref, cityId, ageConfirmedAt]);
 
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  const value = useMemo(() => ({ ...auth, client }), [auth, client]);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): Auth {

@@ -45,6 +45,8 @@ fresh install opens with current answers before it has a connection.
   group, which opens only after the 18+ confirmation.
 - `src/catalogue/` loads, caches and refreshes the catalogue.
 - `src/gita/` opens the bundled Gita database.
+- `src/user/` keeps notes and saves on the phone first and sends them to the
+  guest account when it can.
 - `src/auth/` signs in a guest after the 18+ confirmation and keeps the profile
   row in step with the phone's settings.
 - `src/theme/` switches between Ganga Ghat and Chandni at sunrise and sunset.

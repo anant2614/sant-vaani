@@ -33,6 +33,8 @@ export function Screen({
       style={[styles.fill, { backgroundColor: tokens.bg }]}
       contentContainerStyle={[padding, styles.content, contentStyle]}
       contentInsetAdjustmentBehavior="never"
+      automaticallyAdjustKeyboardInsets
+      keyboardShouldPersistTaps="handled"
     >
       {children}
     </ScrollView>

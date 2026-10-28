@@ -20,6 +20,8 @@ export const VERSE_2_47: Verse = {
 
 export function fakeGita(verses: Verse[] = [VERSE_2_47]): GitaSource {
   return {
+    chapters: async () => [],
+    verses: async (chapter) => verses.filter((v) => v.chapter === chapter),
     verse: async (chapter, verse) => verses.find((v) => v.chapter === chapter && v.verse === verse) ?? null,
   };
 }
@@ -39,16 +41,18 @@ export function TestProviders({
   children,
   catalogue = sampleCatalogue,
   now = TEST_MORNING,
+  gita = fakeGita(),
 }: {
   children: ReactNode;
   catalogue?: Catalogue;
   now?: Date;
+  gita?: GitaSource;
 }) {
   return (
     <AppProviders
       clock={() => now}
       catalogue={{ bundled: catalogue, store: emptyStore(), url: null }}
-      openGita={async () => fakeGita()}
+      openGita={async () => gita}
       systemScheme="light"
       supabase={null}
     >

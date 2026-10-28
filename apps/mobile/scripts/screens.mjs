@@ -1,7 +1,7 @@
 // Screenshots of the web build at phone size: Today by day and by night, in
-// Hindi and on a fresh install, and the welcome screen. The app reads the
-// sample catalogue from the tests, served from this script as if it were the
-// nightly file.
+// Hindi and on a fresh install, the welcome screen and the Gita reader. The
+// app reads the sample catalogue from the tests, served from this script as
+// if it were the nightly file.
 //
 //   npm run screens -w mobile        writes apps/mobile/screens/*.png
 //
@@ -19,7 +19,20 @@ const out = join(app, 'screens');
 const web = join(out, 'web');
 
 const PREFS_KEY = 'sant-vaani:prefs';
+const USER_DATA_KEY = 'sant-vaani:user-data';
 const ADULT = '2026-10-01T00:00:00.000Z';
+
+/** A saved verse 2.47 with a note on it, as the app keeps them on the phone. */
+function verseNote(body) {
+  const at = '2026-10-27T15:00:00.000Z';
+  const note = { id: 'a3c1e1f4-5f1e-4b8e-9d2a-0c9b7f1d2e47', chapter: 2, verse: 47, body, createdAt: at, updatedAt: at };
+  return {
+    notes: { [note.id]: { ...note, deletedAt: null, revision: 1, syncedRevision: 1 } },
+    saves: { 'verse:gita:2.47': { kind: 'verse', ref: 'gita:2.47', createdAt: at } },
+    pendingSaves: {},
+  };
+}
+
 const SHOTS = [
   { name: 'today-light', time: '2026-10-28T07:15:00+05:30', prefs: { language: 'en' }, waitFor: "Today's guidance" },
   { name: 'today-dark', time: '2026-10-28T19:10:00+05:30', prefs: { language: 'en' }, waitFor: "Today's guidance" },
@@ -32,6 +45,38 @@ const SHOTS = [
     prefs: { language: 'en' },
     waitFor: "The saints' answers are on their way. Until then, sit with today's verse.",
     offline: true,
+  },
+  {
+    name: 'scriptures',
+    path: '/scriptures',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    userData: verseNote('Do the work and let the result go. Read this before every exam.'),
+    waitFor: 'Your verses',
+  },
+  {
+    name: 'chapter',
+    path: '/gita/2',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    userData: verseNote('Do the work and let the result go. Read this before every exam.'),
+    waitFor: 'The Yoga of Knowledge',
+  },
+  {
+    name: 'reader',
+    path: '/gita/2/47',
+    time: '2026-10-28T07:15:00+05:30',
+    prefs: { language: 'en' },
+    userData: verseNote('Do the work and let the result go. Read this before every exam.'),
+    waitFor: 'Delete note',
+  },
+  {
+    name: 'reader-hindi-night',
+    path: '/gita/2/47',
+    time: '2026-10-28T21:30:00+05:30',
+    prefs: { language: 'hi' },
+    userData: verseNote('कर्म करो, फल की चिंता मत करो। हर परीक्षा से पहले इसे पढ़ना।'),
+    waitFor: 'नोट हटाएँ',
   },
 ];
 
@@ -89,14 +134,17 @@ async function capture(browser, shot, path) {
     colorScheme: 'light',
   });
   try {
-    if (shot.prefs) {
-      const prefs = JSON.stringify({ ...shot.prefs, ageConfirmedAt: ADULT });
-      await context.addInitScript(([key, value]) => localStorage.setItem(key, value), [PREFS_KEY, prefs]);
-    }
+    const saved = {
+      ...(shot.prefs ? { [PREFS_KEY]: JSON.stringify({ ...shot.prefs, ageConfirmedAt: ADULT }) } : {}),
+      ...(shot.userData ? { [USER_DATA_KEY]: JSON.stringify(shot.userData) } : {}),
+    };
+    await context.addInitScript((entries) => {
+      for (const [key, value] of Object.entries(entries)) localStorage.setItem(key, value);
+    }, saved);
     const page = await context.newPage();
     if (shot.offline) await page.route(`${origin}/catalogue.json`, (route) => route.abort('internetdisconnected'));
     await page.clock.setFixedTime(new Date(shot.time));
-    await page.goto(origin);
+    await page.goto(`${origin}${shot.path ?? '/'}`);
     await page.getByText(shot.waitFor, { exact: true }).first().waitFor({ timeout: 30_000 });
     await page.waitForLoadState('networkidle');
     await page.evaluate(() => document.fonts.ready);

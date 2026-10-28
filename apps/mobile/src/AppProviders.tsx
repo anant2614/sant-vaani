@@ -9,6 +9,8 @@ import { GitaProvider } from '@/gita/GitaProvider';
 import type { GitaSource } from '@/gita/types';
 import { PrefsProvider } from '@/prefs/PrefsProvider';
 import { ThemeProvider } from '@/theme/ThemeProvider';
+import type { UserStore } from '@/user/localStore';
+import { UserDataProvider } from '@/user/UserDataProvider';
 
 /**
  * Everything screens read from, in dependency order. The options exist for
@@ -20,6 +22,7 @@ export function AppProviders({
   openGita,
   systemScheme,
   supabase,
+  userStore,
   children,
 }: {
   clock?: () => Date;
@@ -27,6 +30,7 @@ export function AppProviders({
   openGita?: () => Promise<GitaSource>;
   systemScheme?: Scheme | null;
   supabase?: SupabaseClient | null;
+  userStore?: UserStore;
   children: ReactNode;
 }) {
   return (
@@ -35,7 +39,9 @@ export function AppProviders({
         <ThemeProvider systemScheme={systemScheme}>
           <CatalogueProvider options={catalogue}>
             <GitaProvider open={openGita}>
-              <AuthProvider client={supabase}>{children}</AuthProvider>
+              <AuthProvider client={supabase}>
+                <UserDataProvider store={userStore}>{children}</UserDataProvider>
+              </AuthProvider>
             </GitaProvider>
           </CatalogueProvider>
         </ThemeProvider>

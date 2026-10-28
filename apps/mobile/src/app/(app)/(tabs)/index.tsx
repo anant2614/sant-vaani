@@ -97,6 +97,7 @@ export default function TodayScreen() {
           reference={t.gitaRef(view.verse.chapter, view.verse.verse)}
           verse={verse}
           language={prefs.language}
+          onOpen={() => view.verse && router.push(`/gita/${view.verse.chapter}/${view.verse.verse}`)}
         />
       ) : null}
 

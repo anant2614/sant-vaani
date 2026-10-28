@@ -12,7 +12,8 @@ const VARIANTS = {
   greeting: { fontFamily: fontFamily.display, fontSize: 30, lineHeight: 36 },
   title: { fontFamily: fontFamily.display, fontSize: 26, lineHeight: 33 },
   question: { fontFamily: fontFamily.display, fontSize: 22, lineHeight: 29 },
-  reference: { fontFamily: fontFamily.display, fontSize: 15, lineHeight: 21 },
+  // Marcellus draws 1 and 0 like I and O, so verse numbers use the body face.
+  reference: { fontFamily: fontFamily.bodyMedium, fontSize: 15, lineHeight: 21 },
   body: { fontFamily: fontFamily.body, fontSize: 15, lineHeight: 22 },
   lead: { fontFamily: fontFamily.body, fontSize: 17, lineHeight: 25 },
   strong: { fontFamily: fontFamily.bodyMedium, fontSize: 16, lineHeight: 21 },

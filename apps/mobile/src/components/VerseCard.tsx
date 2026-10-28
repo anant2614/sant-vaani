@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { Verse } from '@/gita/types';
 import type { AppLanguage } from '@/prefs/prefs';
@@ -14,16 +14,28 @@ export function VerseCard({
   reference,
   verse,
   language,
+  onOpen,
 }: {
   label: string;
   reference: string;
   verse: Verse | null;
   language: AppLanguage;
+  /** Opens the verse in the reader. */
+  onOpen?: () => void;
 }) {
   const { tokens } = useTheme();
   const meaning = verse && (language === 'hi' ? verse.meaningHi ?? verse.meaningEn : verse.meaningEn ?? verse.meaningHi);
   return (
-    <View style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.line }]}>
+    <Pressable
+      role="button"
+      accessibilityLabel={`${label}: ${reference}`}
+      disabled={!onOpen}
+      onPress={onOpen}
+      style={({ pressed }) => [
+        styles.card,
+        { backgroundColor: pressed ? tokens.surface2 : tokens.surface, borderColor: tokens.line },
+      ]}
+    >
       <View style={styles.header}>
         <Text variant="eyebrow" color="muted">
           {label}
@@ -40,7 +52,7 @@ export function VerseCard({
           </>
         ) : null}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
