@@ -1,7 +1,7 @@
 -- Row-level security: people see only their own rows, content is staff only.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(21);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-000000000001', 'person@example.com'),
@@ -96,7 +96,20 @@ select is((select count(*)::int from public.clips), 1, 'a curator can read clips
 select is((select count(*)::int from public.notes), 0, 'a curator cannot read people''s notes');
 
 -- Deleting an account ---------------------------------------------------------
+-- Two of the person's questions reached the curators' backlog: one only they
+-- asked, and one the other person asked first in their own words.
 reset role;
+insert into public.backlog_items (id, normalized, example) values
+  ('bbbbbbbb-0000-4000-8000-000000000001', 'why can t i sleep', 'Why can''t I sleep?'),
+  ('bbbbbbbb-0000-4000-8000-000000000002', 'why do i feel so alone', 'why do i feel so alone!!');
+insert into public.asks (user_id, question, language, result, matcher, backlog_id, created_at) values
+  ('00000000-0000-4000-8000-000000000001', 'Why can''t I sleep?', 'en', 'nearest', 'model',
+    'bbbbbbbb-0000-4000-8000-000000000001', now() - interval '2 days'),
+  ('00000000-0000-4000-8000-000000000002', 'Why do I feel so alone?', 'en', 'nearest', 'model',
+    'bbbbbbbb-0000-4000-8000-000000000002', now() - interval '1 day'),
+  ('00000000-0000-4000-8000-000000000001', 'why do i feel so alone!!', 'en', 'nearest', 'model',
+    'bbbbbbbb-0000-4000-8000-000000000002', now());
+
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 select public.delete_my_account();
@@ -114,6 +127,16 @@ select is(
   (select count(*)::int from public.notes where user_id = '00000000-0000-4000-8000-000000000002'),
   1,
   'other people''s notes stay'
+);
+select is(
+  (select count(*)::int from public.backlog_items where id = 'bbbbbbbb-0000-4000-8000-000000000001'),
+  0,
+  'a backlog question only the deleted person asked goes with their account'
+);
+select is(
+  (select example from public.backlog_items where id = 'bbbbbbbb-0000-4000-8000-000000000002'),
+  'Why do I feel so alone?',
+  'a backlog question others asked keeps their words instead of the deleted person''s'
 );
 
 select * from finish();

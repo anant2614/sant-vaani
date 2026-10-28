@@ -3,7 +3,8 @@
 -- Only the ask server function writes here.
 
 -- Questions nobody has answered yet, grouped by their normalized text.
--- No user is linked to a backlog item.
+-- No user is linked to a backlog item, but its text is someone's words, so
+-- it lasts only as long as an ask that used them (see asks_after_delete).
 create table public.backlog_items (
   id uuid primary key default gen_random_uuid(),
   normalized text not null unique,
@@ -102,6 +103,37 @@ as $$
         topic_slugs = excluded.topic_slugs
   returning id
 $$;
+
+-- When an ask goes, with its account or on its own, its words leave the
+-- backlog too: the item takes the latest wording someone else still has,
+-- or goes if nobody else asked it.
+create function public.asks_after_delete() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  other_words text;
+begin
+  if old.backlog_id is null or old.question is null then
+    return null;
+  end if;
+  select a.question into other_words
+    from public.asks a
+    where a.backlog_id = old.backlog_id and a.question is not null
+    order by a.created_at desc
+    limit 1;
+  if other_words is null then
+    delete from public.backlog_items b where b.id = old.backlog_id;
+  else
+    update public.backlog_items b set example = other_words
+      where b.id = old.backlog_id and b.example = old.question;
+  end if;
+  return null;
+end
+$$;
+
+create trigger asks_after_delete
+  after delete on public.asks
+  for each row execute function public.asks_after_delete();
 
 revoke execute on function public.bump_ask_usage(uuid, integer) from public, anon, authenticated;
 revoke execute on function public.record_backlog(text, text, text[]) from public, anon, authenticated;

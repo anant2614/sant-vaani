@@ -293,7 +293,8 @@ $$;
 -- Accounts ---------------------------------------------------------------------
 
 -- Deletes the signed-in person and, by cascade, their profile, saves,
--- notes, path progress, question history and push tokens.
+-- notes, path progress, question history and push tokens. Their words
+-- leave the curators' backlog with their asks (asks_after_delete).
 create function public.delete_my_account() returns void
 language plpgsql security definer set search_path = ''
 as $$
