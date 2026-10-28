@@ -11,3 +11,4 @@ export * from './text/normalize.ts';
 export * from './ask/crisis.ts';
 export * from './ask/lexical.ts';
 export * from './ask/result.ts';
+export * from './youtube/api.ts';
