@@ -424,3 +424,8 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# Ask checks the person's token itself with auth.getClaims, which works with
+# both the legacy JWT secret and the newer asymmetric signing keys.
+[functions.ask]
+verify_jwt = false

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import fixture from './fixtures/catalogue.json' with { type: 'json' };
 import {
   AskModelOutputSchema,
   HELPLINES,
+  askableQuestions,
   lexicalMatch,
+  parseCatalogue,
   screenForCrisis,
   type CuratedQuestion,
 } from '../src/index.ts';
@@ -94,10 +97,9 @@ describe('AskModelOutputSchema', () => {
     expect(parsed.matches[0]?.question_id).toBe('q-anger');
   });
 
-  it('rejects an unknown language', () => {
-    expect(() =>
-      AskModelOutputSchema.parse({ crisis: false, language: 'fr', matches: [], topic_slugs: [] }),
-    ).toThrow();
+  it('reads a language outside the list as other rather than losing the reply', () => {
+    const parsed = AskModelOutputSchema.parse({ crisis: false, language: 'Hindi', matches: [], topic_slugs: [] });
+    expect(parsed.language).toBe('other');
   });
 });
 
@@ -105,5 +107,31 @@ describe('HELPLINES', () => {
   it('lists Tele-MANAS with both numbers', () => {
     const teleManas = HELPLINES.find((h) => h.id === 'tele-manas');
     expect(teleManas?.numbers).toEqual(['14416', '1800-891-4416']);
+  });
+});
+
+describe('askableQuestions', () => {
+  it('lists only answered questions, in topic order, with their answer and phrasings', () => {
+    const catalogue = parseCatalogue({
+      ...fixture,
+      topics: fixture.topics.map((t) => (t.slug === 'anger' ? { ...t, sortOrder: 0 } : t)),
+      questions: [...fixture.questions, { id: 'q-unanswered', topicId: 't-anger', text: { en: 'Not answered yet' } }],
+    });
+    expect(askableQuestions(catalogue, new Map([['q-anger', ['gussa kaise kam karu']]]))).toEqual([
+      {
+        id: 'q-anger',
+        answerId: 'a-anger',
+        topicSlug: 'anger',
+        text: { en: 'How do I stop reacting in anger?', hi: 'मैं गुस्से में प्रतिक्रिया देना कैसे रोकूँ?' },
+        phrasings: ['gussa kaise kam karu'],
+      },
+      {
+        id: 'q-overthinking',
+        answerId: 'a-overthinking',
+        topicSlug: 'overthinking',
+        text: { en: 'How do I stop overthinking at night?' },
+        phrasings: [],
+      },
+    ]);
   });
 });

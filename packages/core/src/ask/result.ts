@@ -6,7 +6,9 @@ import { z } from 'zod';
  */
 export const AskModelOutputSchema = z.object({
   crisis: z.boolean(),
-  language: z.enum(['en', 'hi', 'hinglish', 'other']),
+  // The SDK sends enum values as a hint, not a constraint, so a stray label
+  // becomes 'other' instead of throwing away a good match.
+  language: z.enum(['en', 'hi', 'hinglish', 'other']).catch('other'),
   matches: z.array(z.object({ question_id: z.string(), confidence: z.number() })),
   topic_slugs: z.array(z.string()),
 });

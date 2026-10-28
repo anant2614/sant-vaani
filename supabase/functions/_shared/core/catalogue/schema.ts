@@ -8,6 +8,11 @@ import { z } from 'zod';
  * its own database and the catalogue only points at verses.
  */
 
+/** build-catalogue publishes the file to this bucket, which anyone can read. */
+export const CATALOGUE_BUCKET = 'catalogue';
+/** Named by format version, so a later format can sit beside this one while older apps still read it. */
+export const CATALOGUE_FILE = 'v1.json';
+
 const id = z.string().min(1);
 
 export const LocalizedSchema = z

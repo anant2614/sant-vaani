@@ -90,6 +90,10 @@ export default async function BacklogPage({ searchParams }: PageProps<'/backlog'
                   {view === 'open' && !item.question_id ? (
                     <details style={{ marginTop: 8 }}>
                       <summary>Make a curated question</summary>
+                      <p className="muted">
+                        Everyone using the app sees curated questions, so word it in general terms and leave out names
+                        and personal details.
+                      </p>
                       <ActionForm action={createQuestion.bind(null, item.id)}>
                         <QuestionFields topics={topics} question={draft} />
                         <button type="submit">Make question</button>
