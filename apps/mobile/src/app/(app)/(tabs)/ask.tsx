@@ -9,6 +9,7 @@ import { VoiceButton } from '@/ask/VoiceButton';
 import { useAuth } from '@/auth/AuthProvider';
 import { useCatalogue } from '@/catalogue/CatalogueProvider';
 import { Button } from '@/components/Button';
+import { HelplineLine } from '@/components/HelplineLine';
 import { PillButton } from '@/components/PillButton';
 import { Row } from '@/components/Row';
 import { Screen } from '@/components/Screen';
@@ -67,7 +68,8 @@ export default function AskScreen() {
         if (!index.answer(outcome.answerId)) await refresh();
         setState({ kind: 'idle' });
         track('answer_opened', { answer: outcome.answerId, from: 'ask' });
-        router.push(`/answer/${outcome.answerId}`);
+        // Word overlap cannot spot distress, so that answer opens with the helpline line.
+        router.push(outcome.matchedBy === 'words' ? `/answer/${outcome.answerId}?helpline=1` : `/answer/${outcome.answerId}`);
         return;
       case 'nearest':
         setState({ kind: 'nearest', topicSlugs: outcome.topicSlugs, backlogId: outcome.backlogId, notify: 'ready' });
@@ -161,7 +163,12 @@ export default function AskScreen() {
 
       <View accessibilityLiveRegion="polite" style={styles.result}>
         {state.kind === 'asking' ? <Text color="muted">{t.ask.asking}</Text> : null}
-        {state.kind === 'note' ? <Text variant="lead">{state.text}</Text> : null}
+        {state.kind === 'note' ? (
+          <>
+            <Text variant="lead">{state.text}</Text>
+            <HelplineLine />
+          </>
+        ) : null}
         {state.kind === 'nearest' ? (
           <View style={[styles.card, { borderColor: tokens.line, backgroundColor: tokens.surface }]}>
             <Text variant="lead">{t.ask.nearest}</Text>
@@ -180,6 +187,7 @@ export default function AskScreen() {
                 {t.ask.notifyFailed}
               </Text>
             ) : null}
+            <HelplineLine />
           </View>
         ) : null}
       </View>

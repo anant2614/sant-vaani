@@ -104,6 +104,10 @@ const en = {
     callEmergency: 'Call 112',
     note: 'Sant Vaani shares guidance from the saints. It is not a crisis service.',
   },
+  helpline: {
+    line: "If you're struggling right now, Tele-MANAS is free, day and night: 14416.",
+    link: 'Talk to someone now',
+  },
   saints: {
     lead: 'The saints whose talks answer your questions.',
     answers: (count: number) => `${count} ${count === 1 ? 'answer' : 'answers'}`,
@@ -269,6 +273,10 @@ const hi: Strings = {
     emergency: 'अभी ख़तरे में हैं? 112 पर कॉल करें।',
     callEmergency: '112 पर कॉल करें',
     note: 'संत वाणी संतों का मार्गदर्शन देती है। यह संकट सेवा नहीं है।',
+  },
+  helpline: {
+    line: 'अगर आप अभी बहुत मुश्किल में हैं, तो Tele-MANAS मुफ़्त है, दिन-रात: 14416।',
+    link: 'अभी किसी से बात करें',
   },
   saints: {
     lead: 'जिन संतों के प्रवचन आपके प्रश्नों का उत्तर देते हैं।',

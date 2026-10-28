@@ -57,8 +57,15 @@ export const HELPLINES: Helpline[] = [
   },
 ];
 
+/**
+ * Who read the question: Claude, or word overlap while Claude could not be
+ * reached. Word overlap cannot tell distress from an ordinary question, so
+ * the app shows the helpline line beside what it found.
+ */
+export type AskMatcher = 'model' | 'words';
+
 export type AskResponse =
-  | { kind: 'answer'; questionId: string; answerId: string }
-  | { kind: 'nearest'; topicSlugs: string[]; backlogId: string | null }
+  | { kind: 'answer'; questionId: string; answerId: string; matchedBy: AskMatcher }
+  | { kind: 'nearest'; topicSlugs: string[]; backlogId: string | null; matchedBy: AskMatcher }
   | { kind: 'crisis'; helplines: Helpline[] }
   | { kind: 'limited' };

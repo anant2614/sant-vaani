@@ -6,6 +6,7 @@ import {
   normalizeQuestion,
   screenForCrisis,
   type AskableQuestion,
+  type AskMatcher,
   type AskModelOutput,
   type AskRequest,
   type AskResponse,
@@ -116,7 +117,7 @@ export async function handleAsk(request: AskRequest, deps: AskDeps): Promise<Ask
       matcher,
       backlogId: null,
     });
-    return { kind: 'answer', questionId: best.question.id, answerId: best.question.answerId };
+    return { kind: 'answer', questionId: best.question.id, answerId: best.question.answerId, matchedBy: matchedBy(matcher) };
   }
 
   // Nearest topics: the ones the model named, then those of the weak matches.
@@ -134,5 +135,9 @@ export async function handleAsk(request: AskRequest, deps: AskDeps): Promise<Ask
     matcher,
     backlogId,
   });
-  return { kind: 'nearest', topicSlugs: nearest, backlogId };
+  return { kind: 'nearest', topicSlugs: nearest, backlogId, matchedBy: matchedBy(matcher) };
+}
+
+function matchedBy(matcher: AskRecord['matcher']): AskMatcher {
+  return matcher === 'model' ? 'model' : 'words';
 }

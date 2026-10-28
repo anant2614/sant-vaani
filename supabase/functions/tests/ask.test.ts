@@ -78,7 +78,7 @@ Deno.test('crisis stores no text', async () => {
 Deno.test('strong match returns the answer', async () => {
   const { deps, calls } = fakes();
   const response = await handleAsk(ask('my brain keeps running at night'), deps);
-  assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking' });
+  assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking', matchedBy: 'model' });
   assertEquals(calls.records[0], {
     question: 'my brain keeps running at night',
     language: 'en',
@@ -103,7 +103,7 @@ Deno.test('weak match adds to the backlog and returns nearest topics', async () 
   });
   const text = 'Traffic mein gussa aata hai, kya karu?';
   const response = await handleAsk(ask(text), deps);
-  assertEquals(response, { kind: 'nearest', topicSlugs: ['anger'], backlogId: 'backlog-1' });
+  assertEquals(response, { kind: 'nearest', topicSlugs: ['anger'], backlogId: 'backlog-1', matchedBy: 'model' });
   assertEquals(calls.backlog, [{ normalized: normalizeQuestion(text), example: text, topicSlugs: ['anger'] }]);
   assertEquals(calls.records[0]?.result, 'nearest');
   assertEquals(calls.records[0]?.backlogId, 'backlog-1');
@@ -121,7 +121,8 @@ Deno.test('unknown question ids from the model are ignored', async () => {
 Deno.test('falls back to lexical matching when the model call fails', async () => {
   const { deps, calls } = fakes({ classify: () => Promise.reject(new Error('overloaded')) });
   const response = await handleAsk(ask('How can I stop overthinking'), deps);
-  assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking' });
+  // Claude did not read it, so the app shows the helpline line with the answer.
+  assertEquals(response, { kind: 'answer', questionId: 'q-overthinking', answerId: 'a-overthinking', matchedBy: 'words' });
   assertEquals(calls.records[0]?.matcher, 'lexical');
 });
 

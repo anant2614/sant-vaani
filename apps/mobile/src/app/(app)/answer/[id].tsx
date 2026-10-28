@@ -7,6 +7,7 @@ import { track } from '@/analytics';
 import { useCatalogue } from '@/catalogue/CatalogueProvider';
 import { Avatar } from '@/components/Avatar';
 import { BackHeader } from '@/components/BackHeader';
+import { HelplineLine } from '@/components/HelplineLine';
 import { Button } from '@/components/Button';
 import { IconButton } from '@/components/IconButton';
 import { Screen } from '@/components/Screen';
@@ -26,7 +27,7 @@ import { useIsSaved, useUserStore } from '@/user/UserDataProvider';
  * time in YouTube's own player, then a verse and one small step.
  */
 export default function AnswerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, helpline } = useLocalSearchParams<{ id: string; helpline?: string }>();
   const t = useStrings();
   const router = useRouter();
   const { tokens } = useTheme();
@@ -106,6 +107,8 @@ export default function AnswerScreen() {
           {t.saintsAndMinutes(saints, index.answerMinutes(answer))}
         </Text>
       </View>
+
+      {helpline ? <HelplineLine /> : null}
 
       {playing ? (
         playerAllowed ? (

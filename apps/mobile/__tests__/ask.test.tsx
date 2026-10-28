@@ -75,6 +75,21 @@ test('a strong match opens the saints answer', async () => {
 
   expect(await screen.findByText('How do I stop reacting in anger?')).toBeOnTheScreen();
   expect(getPathname()).toBe('/answer/answer-2');
+  expect(screen.queryByRole('link', { name: 'Talk to someone now' })).not.toBeOnTheScreen();
+});
+
+test('an answer found while Claude was unreachable opens with the helpline line', async () => {
+  const server = fakeSupabase({
+    ask: () => ({ kind: 'answer', questionId: 'q-anger', answerId: 'answer-2', matchedBy: 'words' }),
+  });
+  const { getPathname } = await renderAsk(server);
+
+  await ask('why do I get so angry with my family');
+
+  expect(await screen.findByText('How do I stop reacting in anger?')).toBeOnTheScreen();
+  await fireEvent.press(screen.getByRole('link', { name: 'Talk to someone now' }));
+  expect(await screen.findByRole('button', { name: 'Call 14416' })).toBeOnTheScreen();
+  expect(getPathname()).toBe('/crisis');
 });
 
 test('a question without an answer yet shows the nearest topics and can ask to be told', async () => {
@@ -85,6 +100,7 @@ test('a question without an answer yet shows the nearest topics and can ask to b
 
   expect(await screen.findByText('The saints have not answered this one yet.')).toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Studies and exams' })).toBeOnTheScreen();
+  expect(screen.getByRole('link', { name: 'Talk to someone now' })).toBeOnTheScreen();
   await fireEvent.press(screen.getByRole('button', { name: "Tell me when it's answered" }));
   expect(await screen.findByText("We'll let you know when the saints answer it.")).toBeOnTheScreen();
   expect(server.sent('notify_requests').map((call) => call.payload)).toEqual([{ backlog_id: 'backlog-9' }]);
@@ -96,6 +112,7 @@ test('the daily limit is explained', async () => {
   await ask('one more question');
 
   expect(await screen.findByText("You've asked 30 questions today. Ask again tomorrow.")).toBeOnTheScreen();
+  expect(screen.getByRole('link', { name: 'Talk to someone now' })).toBeOnTheScreen();
 });
 
 test('without a connection Ask says so and still offers the topics', async () => {
@@ -107,4 +124,5 @@ test('without a connection Ask says so and still offers the topics', async () =>
 
   expect(await screen.findByText('Ask needs an internet connection. You can still browse the topics below.')).toBeOnTheScreen();
   expect(screen.getByRole('button', { name: 'Grief and loss' })).toBeOnTheScreen();
+  expect(screen.getByRole('link', { name: 'Talk to someone now' })).toBeOnTheScreen();
 });
