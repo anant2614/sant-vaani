@@ -52,6 +52,7 @@ test('crisis response opens the helpline screen before any clip', async () => {
   expect(screen.queryByText(/Sample Saint/)).not.toBeOnTheScreen();
   expect(server.fake.functions.invoke).toHaveBeenCalledWith('ask', {
     body: { question: 'everything feels pointless lately', uiLanguage: 'en' },
+    timeout: 40_000,
   });
 });
 

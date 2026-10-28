@@ -10,6 +10,12 @@ export type AskOutcome =
 const KINDS = new Set(['answer', 'nearest', 'crisis', 'limited']);
 
 /**
+ * Long enough for the server's own worst case (two model attempts, then word
+ * overlap), short enough that a stalled connection ends as "offline".
+ */
+export const ASK_TIMEOUT_MS = 40_000;
+
+/**
  * Sends a question to the Ask function. The crisis check runs on the phone
  * first, so someone in crisis reaches the helplines at once, even with no
  * signal, and those words never leave the phone. Questions that pass it go
@@ -23,7 +29,9 @@ export async function askQuestion(
   if (screenForCrisis(question).crisis) return { kind: 'crisis', helplines: HELPLINES, checkedOn: 'phone' };
   if (!client) return { kind: 'failed', reason: 'not-signed-in', checkedOn: 'phone' };
 
-  const reply = await client.functions.invoke<AskResponse>('ask', { body: { question, uiLanguage } }).catch(() => null);
+  const reply = await client.functions
+    .invoke<AskResponse>('ask', { body: { question, uiLanguage }, timeout: ASK_TIMEOUT_MS })
+    .catch(() => null);
   if (!reply) return { kind: 'failed', reason: 'offline', checkedOn: 'server' };
   const { data, error } = reply;
   if (error instanceof FunctionsFetchError) return { kind: 'failed', reason: 'offline', checkedOn: 'server' };
