@@ -129,3 +129,21 @@ export function createYouTubeClient(apiKey: string, fetchImpl: Fetch = fetch) {
 }
 
 export type YouTubeClient = ReturnType<typeof createYouTubeClient>;
+
+/**
+ * The columns of the videos table that come from YouTube. They are always
+ * written together, with the time they were read, because YouTube data may
+ * be kept for at most 30 days without a refresh.
+ */
+export function videoColumns(video: YouTubeVideo, fetchedAt: Date) {
+  return {
+    title: video.title,
+    description: video.description,
+    published_at: video.publishedAt,
+    duration_seconds: video.durationSeconds,
+    chapters: video.chapters,
+    embeddable: video.embeddable,
+    privacy_status: video.privacyStatus,
+    fetched_at: fetchedAt.toISOString(),
+  };
+}

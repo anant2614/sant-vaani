@@ -429,3 +429,17 @@ enabled = true
 # both the legacy JWT secret and the newer asymmetric signing keys.
 [functions.ask]
 verify_jwt = false
+
+# The scheduled jobs are called by pg_cron with CRON_SECRET (see the schedule
+# migration), not with a person's token, and check that secret themselves.
+[functions.fetch-uploads]
+verify_jwt = false
+
+[functions.suggest-clips]
+verify_jwt = false
+
+[functions.check-clips]
+verify_jwt = false
+
+[functions.build-catalogue]
+verify_jwt = false

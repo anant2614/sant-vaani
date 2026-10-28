@@ -1,6 +1,6 @@
 'use server';
 
-import { parseYouTubeVideoId, YouTubeApiError } from '@sant-vaani/core';
+import { parseYouTubeVideoId, videoColumns, YouTubeApiError } from '@sant-vaani/core';
 import { refresh } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ActionState } from '@/lib/actions';
@@ -44,18 +44,7 @@ export async function addVideo(_state: ActionState, data: FormData): Promise<Act
 
   const { data: inserted, error } = await supabase
     .from('videos')
-    .insert({
-      channel_id: channel.id,
-      youtube_id: video.youtubeId,
-      title: video.title,
-      description: video.description,
-      published_at: video.publishedAt,
-      duration_seconds: video.durationSeconds,
-      chapters: video.chapters,
-      embeddable: video.embeddable,
-      privacy_status: video.privacyStatus,
-      fetched_at: new Date().toISOString(),
-    })
+    .insert({ channel_id: channel.id, youtube_id: video.youtubeId, ...videoColumns(video, new Date()) })
     .select('id')
     .single();
   if (error) return { error: friendlyError(error.message) };

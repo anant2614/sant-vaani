@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createYouTubeClient, YouTubeApiError } from '../src/index.ts';
+import { createYouTubeClient, videoColumns, YouTubeApiError } from '../src/index.ts';
 
 type Call = { path: string; params: URLSearchParams };
 
@@ -95,5 +95,34 @@ describe('createYouTubeClient', () => {
   it('raises a YouTubeApiError on a failed call', async () => {
     const yt = createYouTubeClient('KEY', fakeFetch({}));
     await expect(yt.listUploads('UUaaaaaaaaaaaaaaaaaaaaaa')).rejects.toBeInstanceOf(YouTubeApiError);
+  });
+});
+
+describe('videoColumns', () => {
+  it('maps every YouTube-owned field to its column, with the time it was read', () => {
+    const columns = videoColumns(
+      {
+        youtubeId: 'aaaaaaaaaaa',
+        channelId: 'UCaaaaaaaaaaaaaaaaaaaaaa',
+        title: 'Satsang',
+        description: 'About the mind',
+        publishedAt: '2026-10-01T05:00:00Z',
+        durationSeconds: 723,
+        embeddable: true,
+        privacyStatus: 'unlisted',
+        chapters: [],
+      },
+      new Date('2026-10-28T20:00:00Z'),
+    );
+    expect(columns).toEqual({
+      title: 'Satsang',
+      description: 'About the mind',
+      published_at: '2026-10-01T05:00:00Z',
+      duration_seconds: 723,
+      chapters: [],
+      embeddable: true,
+      privacy_status: 'unlisted',
+      fetched_at: '2026-10-28T20:00:00.000Z',
+    });
   });
 });
