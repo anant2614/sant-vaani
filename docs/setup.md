@@ -23,7 +23,7 @@ anyone can read them there.
 | [Apple Developer Program](https://developer.apple.com/programs/) | App Store and TestFlight | iPhone testers |
 | [Google Play Console](https://play.google.com/console) | Play Store and testing tracks | Android testers |
 | [PostHog](https://posthog.com) | Product analytics, with no question text, notes or names | Launch |
-| [Sentry](https://sentry.io) | Crash reports (not wired into the code yet) | Launch |
+| [Sentry](https://sentry.io) | Crash reports from the app and the studio, with no question text, notes or names | Launch |
 
 Use one shared work email as the owner of each account, and add people as
 members, so nothing depends on one person's login.
@@ -150,7 +150,8 @@ members, so nothing depends on one person's login.
    `apps/studio`. Vercel installs the npm workspace from the repository root,
    so the studio can use `packages/core`.
 2. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and
-   `YOUTUBE_API_KEY` (the studio's key) for Production and Preview.
+   `YOUTUBE_API_KEY` (the studio's key) for Production and Preview, and
+   `NEXT_PUBLIC_SENTRY_DSN` for crash reports (step 8).
 3. Give it its own address, such as `studio.santvaani.app`, and use that as
    the Site URL in Supabase.
 4. Sign in once with your own email, then make yourself the first admin in
@@ -190,6 +191,7 @@ members, so nothing depends on one person's login.
    | `EXPO_PUBLIC_SUPABASE_URL` | `https://<project ref>.supabase.co` |
    | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The publishable key |
    | `EXPO_PUBLIC_POSTHOG_KEY`, `EXPO_PUBLIC_POSTHOG_HOST` | From PostHog |
+   | `EXPO_PUBLIC_SENTRY_DSN` | From Sentry (step 8). Without it the app sends no crash reports |
    | `EXPO_PUBLIC_SITE_URL` | The website, once it serves `/terms` and `/privacy` |
    | `EXPO_PUBLIC_SHARE_BASE_URL` | Optional. Where shared answers link (`<url>/a/<answer id>`); defaults to the website |
 
@@ -231,7 +233,9 @@ push service:
 - Both stores ask what data the app collects. In short: the questions people
   type (sent to our server and the Claude API), notes, saves and path
   progress (stored against a guest account), a push token if they ask to be
-  notified, and analytics events without question text, notes or names.
+  notified, analytics events and crash reports without question text, notes
+  or names, and spoken questions, which the phone's own speech service
+  (Apple's or Google's) turns into text.
 - `npx eas-cli submit` uploads a finished build to either store.
 
 ## 8. PostHog and Sentry
@@ -240,9 +244,27 @@ push service:
   host into the EAS variables above. The events are listed in
   `apps/mobile/src/analytics.ts`, and deleting an account starts a new
   analytics id.
-- **Sentry.** Version 1 does not report crashes yet. Create React Native and
-  Next.js projects now, so the app and studio can be connected before launch;
-  the crash-free target in the architecture doc depends on it.
+- **Sentry.** Create a React Native project for the app and a Next.js
+  project for the studio, and put their DSNs in `EXPO_PUBLIC_SENTRY_DSN`
+  (EAS) and `NEXT_PUBLIC_SENTRY_DSN` (Vercel). Without a DSN, nothing is
+  sent. The crash-free target in the architecture doc comes from the app's
+  project, which tracks sessions by default.
+  - Every report goes through `packages/core/src/privacy/crashReports.ts`
+    first: it drops the request, the person and extra data, cuts the query
+    off every address, and keeps only breadcrumbs that cannot carry typed
+    text (web requests, screen changes, app and device states). A crash in
+    the phone's native code skips it, so the app also turns off iOS's own
+    request breadcrumbs. Leave the SDKs' screenshots, view hierarchy,
+    session replay and tracing off.
+  - In each project's Security & Privacy settings, turn on "Prevent Storing
+    of IP Addresses" and keep the data scrubber on.
+  - Stack traces arrive minified, because version 1 uploads no source maps.
+    To read them, add the `@sentry/react-native/expo` config plugin (with
+    `organization` and `project`) to `app.json` and `getSentryExpoConfig` to
+    `metro.config.js`, give EAS a `SENTRY_AUTH_TOKEN` secret, and wrap the
+    studio's `next.config.ts` with `withSentryConfig`. Sentry's docs do not
+    say whether a build with the plugin but no token fails, so add the plugin
+    and the token together.
 
 ## 9. Before submitting to the stores
 
@@ -250,8 +272,9 @@ The website is not part of version 1's code, but the stores and the app need
 three pages on it:
 
 - `/privacy`, which must name YouTube API Services and link Google's Privacy
-  Policy, say that typed questions go to the Claude API, name PostHog, and
-  explain account deletion.
+  Policy, say that typed questions go to the Claude API, say that spoken
+  questions are turned into text by Apple's or Google's speech service on the
+  phone, name PostHog and Sentry, and explain account deletion.
 - `/terms`.
 - `/a/<answer id>`, for shared answers: open the app if it is installed, or
   show the answer and the store links.

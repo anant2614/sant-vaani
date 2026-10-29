@@ -12,3 +12,4 @@ export * from './ask/lexical.ts';
 export * from './ask/questions.ts';
 export * from './ask/result.ts';
 export * from './youtube/api.ts';
+export * from './privacy/crashReports.ts';

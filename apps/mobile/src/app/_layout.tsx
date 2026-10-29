@@ -5,8 +5,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { AppProviders } from '@/AppProviders';
+import { startCrashReports } from '@/crashReports';
 import { RootStack } from '@/navigation/RootStack';
 import { fontFiles } from '@/theme/fonts';
+
+// First, so a crash while the app starts is reported too (when the build has a DSN).
+startCrashReports();
 
 // The splash stays up until fonts, preferences and the catalogue are read
 // from the phone, so the first screen appears complete.

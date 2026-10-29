@@ -3,7 +3,8 @@ import { CATALOGUE_BUCKET, CATALOGUE_FILE } from '@sant-vaani/core';
 /**
  * Settings baked in at build time from EXPO_PUBLIC_ variables (see
  * .env.example). Each one is optional, so the app still opens with only
- * what ships inside it: no sign-in, no analytics and no catalogue refresh.
+ * what ships inside it: no sign-in, no analytics, no crash reports and no
+ * catalogue refresh.
  * Expo inlines EXPO_PUBLIC_ variables only when they are read by their full
  * name, which is why each is spelled out below.
  */
@@ -22,6 +23,8 @@ export const config = {
         host: clean(process.env.EXPO_PUBLIC_POSTHOG_HOST) ?? 'https://eu.i.posthog.com',
       }
     : null,
+  /** Sentry's address for crash reports. Leave it empty to send none. */
+  sentryDsn: clean(process.env.EXPO_PUBLIC_SENTRY_DSN),
   /** The website, for the terms and privacy pages and the player's origin. */
   siteUrl: clean(process.env.EXPO_PUBLIC_SITE_URL),
   /** Where shared links point: <shareBaseUrl>/a/<answer id>. Defaults to the website. */
