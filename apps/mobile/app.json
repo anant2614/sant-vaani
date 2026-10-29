@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "Sant Vaani",
+    "slug": "sant-vaani",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "santvaani",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#E9EFF2",
+    "ios": {
+      "bundleIdentifier": "com.santvaani.app",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.santvaani.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1D3446",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-localization",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E9EFF2",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120,
+          "dark": {
+            "backgroundColor": "#1C2230",
+            "image": "./assets/images/splash-icon.png"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#1D3446",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Sant Vaani uses the microphone only while you speak a question.",
+          "speechRecognitionPermission": "Sant Vaani turns your spoken question into text so you can ask the saints.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
